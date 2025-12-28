@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - CE App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1a1a2e;
+            color: white;
+        }
+
+        pre {
+            background: #16213e;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 10px 5px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #764ba2;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>CE App - Debug Console</h1>
+
+    <div>
+        <button onclick="checkDatabase()">Check Database</button>
+        <button onclick="checkEvents()">Check Events</button>
+        <button onclick="createTestTicket()">Create Test Ticket</button>
+        <button onclick="window.location.href='index.html'">Go to Main App</button>
+    </div>
+
+    <h2>Output:</h2>
+    <pre id="output">Click a button above to debug...</pre>
+
+    <script src="app.js"></script>
+    <script>
+        function log(message) {
+            const output = document.getElementById('output');
+            output.textContent = JSON.stringify(message, null, 2);
+        }
+
+        function checkDatabase() {
+            log({
+                message: "Database Object",
+                exists: typeof Database !== 'undefined',
+                events: Database?.events || [],
+                tickets: Database?.tickets || [],
+                checkins: Database?.checkins || []
+            });
+        }
+
+        function checkEvents() {
+            if (typeof Database === 'undefined') {
+                log({ error: "Database is not defined!" });
+                return;
+            }
+
+            log({
+                message: "Events in Database",
+                count: Database.events.length,
+                events: Database.events
+            });
+        }
+
+        function createTestTicket() {
+            if (typeof Database === 'undefined') {
+                log({ error: "Database is not defined!" });
+                return;
+            }
+
+            const result = Database.createTicket('evt_001', 'test@example.com');
+            log({
+                message: "Test Ticket Created",
+                result: result,
+                totalTickets: Database.tickets.length,
+                allTickets: Database.tickets
+            });
+        }
+    </script>
+</body>
+
+</html>
