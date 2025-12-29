@@ -9,25 +9,26 @@ CE APP
 
 2. UI PAGE
     1. system pages
-        1. login
-        2. register
-        3. admin dashboard
-        4. events dashboard
-        5. billing dashboard
-        6. user dashboard (announcements)
-        7. guest dashboard (announcements)
-        8. super admin dashboard
-        9. logout
-        10. forgot password
-        11. reset password
-        12. change password
-        13. profile
-        14. settings
-        15. help
-        16. about
-        17. contact
-        18. terms
-        19. privacy
+        1. landing page (guest)
+        2. login
+        3. register
+        4. admin dashboard
+        5. events dashboard
+        6. billing dashboard
+        7. user dashboard (announcements)
+        8. guest dashboard (announcements)
+        9. super admin dashboard
+        10. logout
+        11. forgot password
+        12. reset password
+        13. change password
+        14. profile
+        15. settings
+        16. help
+        17. about
+        18. contact
+        19. terms
+        20. privacy
     2. event pages
         1. event page
         2. event registration

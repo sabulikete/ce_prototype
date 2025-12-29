@@ -1,0 +1,40 @@
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+}
+
+.status-badge.paid {
+    background: rgba(16, 185, 129, 0.2);
+    color: var(--success);
+}
+
+.status-badge.unpaid {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--error);
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+th {
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+td {
+    vertical-align: middle;
+}
+
+tr:last-child {
+    border-bottom: none;
+}
