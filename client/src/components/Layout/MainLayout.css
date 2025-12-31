@@ -6,7 +6,7 @@
 
 .main-content {
     min-height: 100vh;
-    padding: 2vh;
+    padding: 2rem;
     transition: padding-left 0.3s ease;
 }
 
@@ -54,5 +54,38 @@
 
     100% {
         transform: translate(50px, 50px);
+    }
+}
+
+/* MOBILE RESPONSIVE */
+@media (max-width: 1024px) {
+    .main-content.with-sidebar {
+        padding-left: 2rem;
+        padding-top: 80px;
+        /* Space for mobile header */
+    }
+
+    .main-content {
+        padding: 1rem;
+    }
+
+    .ambient-light {
+        opacity: 0.2;
+    }
+
+    .light-1,
+    .light-2 {
+        width: 300px;
+        height: 300px;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        padding: 1rem 0.75rem;
+    }
+
+    .main-content.with-sidebar {
+        padding-top: 70px;
     }
 }

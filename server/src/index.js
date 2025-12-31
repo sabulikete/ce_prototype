@@ -2,16 +2,19 @@ const express = require('express');
 const cors = require('cors');
 const sequelize = require('./config/database');
 const userRoutes = require('./routes/userRoutes');
+const postRoutes = require('./routes/postRoutes');
 const User = require('./models/User');
+const Post = require('./models/Post');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' })); // Increase limit for base64 images
 
 // Routes
 app.use('/api/users', userRoutes);
+app.use('/api/posts', postRoutes);
 
 // Basic Login Mock for now (Since we are moving from client mock)
 // In a real app, this should use bcrypt + JWT as defined in userRoutes, 

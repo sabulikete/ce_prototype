@@ -7,8 +7,10 @@ import Billing from './pages/Billing';
 import AdminBilling from './pages/Admin/AdminBilling';
 import AdminEvents from './pages/Admin/AdminEvents';
 import AdminUsers from './pages/Admin/AdminUsers';
+import AdminPosts from './pages/Admin/AdminPosts';
 import LandingPage from './pages/LandingPage';
 import AcceptInvite from './pages/AcceptInvite';
+import PostDetail from './pages/PostDetail';
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
@@ -27,6 +29,7 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
+      <Route path="/post/:id" element={<PostDetail />} />
       <Route path="/login" element={<Login />} />
       <Route path="/accept-invite" element={<AcceptInvite />} />
 
@@ -44,6 +47,7 @@ const AppRoutes = () => {
         <Route path="admin/billing" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminBilling /></ProtectedRoute>} />
         <Route path="admin/events" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminEvents /></ProtectedRoute>} />
         <Route path="admin/users" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminUsers /></ProtectedRoute>} />
+        <Route path="admin/posts" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminPosts /></ProtectedRoute>} />
 
       </Route>
 

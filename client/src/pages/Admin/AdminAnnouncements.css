@@ -1,0 +1,24 @@
+.vis-badge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.vis-badge.public {
+    background: rgba(52, 211, 153, 0.2);
+    color: #34d399;
+}
+
+.vis-badge.private {
+    background: rgba(251, 191, 36, 0.2);
+    color: #fbbf24;
+}
+
+.post-item:hover {
+    background: rgba(255, 255, 255, 0.02);
+}

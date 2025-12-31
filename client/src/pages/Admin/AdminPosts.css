@@ -1,0 +1,68 @@
+.vis-badge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.vis-badge.public {
+    background: rgba(52, 211, 153, 0.2);
+    color: #34d399;
+}
+
+.vis-badge.private {
+    background: rgba(251, 191, 36, 0.2);
+    color: #fbbf24;
+}
+
+.status-badge {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.status-badge.draft {
+    background: rgba(156, 163, 175, 0.2);
+    color: #9ca3af;
+}
+
+.status-badge.archived {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+.post-item:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.tab-switcher-inline {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.tab-btn-sm {
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.875rem;
+}
+
+.tab-btn-sm.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.tab-btn-sm:hover:not(.active) {
+    border-color: var(--primary);
+}

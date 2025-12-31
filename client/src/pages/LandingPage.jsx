@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Calendar, Bell, ChevronRight, ArrowRight, User } from 'lucide-react';
@@ -5,41 +6,29 @@ import './LandingPage.css';
 
 const LandingPage = () => {
     const { user } = useAuth();
+    const [announcements, setAnnouncements] = useState([]);
+    const [publicEvents, setPublicEvents] = useState([]);
 
-    // Mock Public Data
-    const announcements = [
-        {
-            id: 1,
-            tag: 'Community',
-            title: 'Summer Community Bazaar',
-            content: 'Join us this weekend for our annual community bazaar featuring local vendors and food stalls.',
-            date: 'Aug 15, 2025'
-        },
-        {
-            id: 2,
-            tag: 'Maintenance',
-            title: 'Main Gate Renovations',
-            content: 'The main entrance will shorter hours this week due to repainting. Please use the East Gate.',
-            date: 'Aug 12, 2025'
-        }
-    ];
+    useEffect(() => {
+        // Fetch Public Data
+        const fetchData = async () => {
+            try {
+                const [annRes, evtRes] = await Promise.all([
+                    fetch('/api/posts?type=announcement&visibility=public'),
+                    fetch('/api/posts?type=event&visibility=public&upcoming=true')
+                ]);
 
-    const publicEvents = [
-        {
-            id: 101,
-            title: 'YOGA by the Pool',
-            date: 'Every Saturday, 7:00 AM',
-            location: 'Clubhouse Poolside',
-            image: '🧘‍♀️'
-        },
-        {
-            id: 102,
-            title: 'Town Hall Meeting',
-            date: 'Sep 01, 2025 - 6:00 PM',
-            location: 'Grand Hall',
-            image: '🏛️'
-        }
-    ];
+                const annData = await annRes.json();
+                const evtData = await evtRes.json();
+
+                if (Array.isArray(annData)) setAnnouncements(annData);
+                if (Array.isArray(evtData)) setPublicEvents(evtData);
+            } catch (err) {
+                console.error(err);
+            }
+        };
+        fetchData();
+    }, []);
 
     return (
         <div className="landing-page">
@@ -95,14 +84,14 @@ const LandingPage = () => {
                         </div>
                         <div className="cards-grid">
                             {announcements.map(item => (
-                                <div key={item.id} className="card glass-panel hover-card">
+                                <Link to={`/post/${item.id}`} key={item.id} className="card glass-panel hover-card" style={{ textDecoration: 'none', color: 'inherit' }}>
                                     <div className="card-top">
-                                        <span className="tag">{item.tag}</span>
-                                        <span className="date">{item.date}</span>
+                                        <span className="tag">Announcement</span>
+                                        <span className="date">{new Date(item.created_at).toLocaleDateString()}</span>
                                     </div>
                                     <h3>{item.title}</h3>
                                     <p className="text-muted">{item.content}</p>
-                                </div>
+                                </Link>
                             ))}
                         </div>
                     </div>
@@ -115,17 +104,17 @@ const LandingPage = () => {
                         </div>
                         <div className="cards-grid">
                             {publicEvents.map(evt => (
-                                <div key={evt.id} className="card glass-panel hover-card event-public-card">
-                                    <div className="event-emoji">{evt.image}</div>
+                                <Link to={`/post/${evt.id}`} key={evt.id} className="card glass-panel hover-card event-public-card" style={{ textDecoration: 'none', color: 'inherit' }}>
+                                    <div className="event-emoji">📅</div>
                                     <div className="event-info">
                                         <h3>{evt.title}</h3>
-                                        <p className="text-primary font-medium">{evt.date}</p>
+                                        <p className="text-primary font-medium">{new Date(evt.event_start_at).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</p>
                                         <p className="text-muted text-sm">{evt.location}</p>
                                     </div>
                                     <div className="event-action">
                                         <button className="btn-ghost icon-btn"><ChevronRight size={20} /></button>
                                     </div>
-                                </div>
+                                </Link>
                             ))}
                         </div>
                     </div>
