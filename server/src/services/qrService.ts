@@ -23,7 +23,7 @@ export const generateTicket = async (userId: number, eventId: number) => {
     data: {
       user_id: userId,
       event_id: eventId,
-      code_hash: '', // Placeholder
+      code_hash: 'pending', // Placeholder, updated immediately below
     },
   });
 

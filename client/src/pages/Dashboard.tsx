@@ -35,11 +35,16 @@ const Dashboard: React.FC = () => {
     loadContent();
   }, []);
 
+  const displayName =
+    (user as any)?.name ||
+    (user as any)?.displayName ||
+    (user?.email ? user.email.split('@')[0] : undefined);
+
   return (
     <div className="dashboard fade-in">
       <header className="page-header">
         <div>
-          <h1 className="text-2xl font-bold">Welcome back, {user?.email}</h1>
+          <h1 className="text-2xl font-bold">Welcome back, {displayName || user?.email}</h1>
           <p className="text-muted">Here's what's happening at your property today.</p>
         </div>
         <div className="date-badge glass-panel">

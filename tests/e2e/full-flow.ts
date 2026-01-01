@@ -8,6 +8,14 @@ let ticketToken = '';
 const email = `testuser_${Date.now()}@example.com`;
 const password = 'password123';
 
+interface Ticket {
+  id: number;
+  event_id: number;
+  user_id: number;
+  token: string;
+  status: string;
+}
+
 async function runTest() {
   console.log('Starting E2E Test...');
 
@@ -62,6 +70,11 @@ async function runTest() {
 
   if (!userLoginRes.ok) throw new Error('User login failed');
   const userLoginData = await userLoginRes.json() as any;
+  
+  if (!userLoginData.user || typeof userLoginData.user.id !== 'number') {
+    throw new Error('Invalid user ID received from login');
+  }
+
   userToken = userLoginData.token;
   userId = userLoginData.user.id;
   console.log('   User logged in.');
@@ -114,8 +127,8 @@ async function runTest() {
   });
 
   if (!ticketsRes.ok) throw new Error('Fetch tickets failed');
-  const tickets = await ticketsRes.json() as any;
-  const ticket = tickets.find((t: any) => t.event_id === eventId);
+  const tickets = await ticketsRes.json() as Ticket[];
+  const ticket = tickets.find((t) => t.event_id === eventId);
   if (!ticket) throw new Error('Ticket not found');
   ticketToken = ticket.token;
   console.log('   Ticket found.');

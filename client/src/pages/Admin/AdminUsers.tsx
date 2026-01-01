@@ -6,7 +6,7 @@ import './AdminUsers.css';
 interface UserData {
   id: number;
   email: string;
-  name: string;
+  // name: string; // Removed as it's not in the Prisma schema
   role: 'ADMIN' | 'STAFF' | 'MEMBER';
   status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
   created_at: string;
@@ -48,6 +48,7 @@ const AdminUsers: React.FC = () => {
     e.preventDefault();
     setSending(true);
     try {
+      // Name is not stored in User model, but might be used for email or other purposes in invite
       const res = await createInvite(inviteData.email, inviteData.role, inviteData.name);
       setGeneratedLink(res.inviteLink);
       // Optionally reload users if the invite creates a placeholder user, but usually it doesn't until accepted
@@ -130,7 +131,8 @@ const AdminUsers: React.FC = () => {
                         <User size={16} />
                       </div>
                       <div className="user-info">
-                        <span className="user-name">{user.name}</span>
+                        {/* Name is not in schema, using email part as display name */}
+                        <span className="user-name">{user.email.split('@')[0]}</span>
                         <span className="user-email">{user.email}</span>
                       </div>
                     </div>
