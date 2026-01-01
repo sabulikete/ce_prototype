@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  MEMBER
+  ADMIN
+  STAFF
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  INVITED
+}
+
+enum ContentType {
+  ANNOUNCEMENT
+  ACTIVITY
+  MEMO
+  EVENT
+}
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum Visibility {
+  PUBLIC
+  MEMBER
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  email         String    @unique
+  password_hash String
+  role          Role
+  unit_id       String?
+  status        UserStatus @default(ACTIVE)
+  
+  tickets           Ticket[]
+  billingStatements BillingStatement[]
+  createdInvites    Invite[] @relation("CreatedInvites")
+}
+
+model Invite {
+  id         Int       @id @default(autoincrement())
+  email      String
+  role       Role
+  unit_id    String?
+  token_hash String
+  expires_at DateTime
+  used_at    DateTime?
+  created_by Int
+  creator    User      @relation("CreatedInvites", fields: [created_by], references: [id])
+  created_at DateTime  @default(now())
+}
+
+model Content {
+  id           Int           @id @default(autoincrement())
+  type         ContentType
+  title        String
+  body         String        @db.Text
+  status       ContentStatus @default(DRAFT)
+  visibility   Visibility    @default(PUBLIC)
+  is_pinned    Boolean       @default(false)
+  created_at   DateTime      @default(now())
+  published_at DateTime?
+  
+  event        Event?
+}
+
+model Event {
+  content_id Int      @id
+  content    Content  @relation(fields: [content_id], references: [id])
+  start_at   DateTime
+  end_at     DateTime
+  location   String
+  
+  tickets    Ticket[]
+}
+
+model Ticket {
+  id            Int       @id @default(autoincrement())
+  user_id       Int
+  user          User      @relation(fields: [user_id], references: [id])
+  event_id      Int
+  event         Event     @relation(fields: [event_id], references: [content_id])
+  code_hash     String
+  checked_in_at DateTime?
+  voided_at     DateTime?
+  created_at    DateTime  @default(now())
+}
+
+model BillingStatement {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  user       User     @relation(fields: [user_id], references: [id])
+  file_path  String
+  period     DateTime @db.Date
+  created_at DateTime @default(now())
+}

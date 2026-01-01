@@ -24,10 +24,10 @@ const AcceptInvite = () => {
         setStatus('processing');
 
         try {
-            const res = await fetch('/api/users/activate', {
+            const res = await fetch(`/api/invites/${token}/accept`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token, password })
+                body: JSON.stringify({ password })
             });
 
             const data = await res.json();
@@ -37,7 +37,7 @@ const AcceptInvite = () => {
                 setTimeout(() => navigate('/login'), 2000);
             } else {
                 setStatus('error');
-                setMsg(data.message || 'Activation failed');
+                setMsg(data.error || data.message || 'Activation failed');
             }
         } catch (err) {
             setStatus('error');
