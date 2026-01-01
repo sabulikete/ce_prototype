@@ -33,6 +33,7 @@ export const AuthProvider = ({ children }) => {
             const data = await res.json();
             setUser(data.user);
             localStorage.setItem('user', JSON.stringify(data.user));
+            localStorage.setItem('token', data.token);
             return data.user;
         } catch (error) {
             console.error(error);
@@ -43,6 +44,7 @@ export const AuthProvider = ({ children }) => {
     const logout = () => {
         setUser(null);
         localStorage.removeItem('user');
+        localStorage.removeItem('token');
     };
 
     return (

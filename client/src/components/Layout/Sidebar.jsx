@@ -72,9 +72,9 @@ const Sidebar = () => {
                                 <Receipt size={20} />
                                 <span>My Billing</span>
                             </NavLink>
-                            <NavLink to="/events" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-                                <Calendar size={20} />
-                                <span>Events</span>
+                            <NavLink to="/tickets" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} onClick={closeMobile}>
+                                <QrCode size={20} />
+                                <span>My Tickets</span>
                             </NavLink>
                         </>
                     )}
