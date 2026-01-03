@@ -380,7 +380,7 @@ export const getEventAttendees = async (req: Request, res: Response) => {
     }
 
     // Build user filter for search
-    const userWhere: any = {};
+    const userWhere: Prisma.UserWhereInput = {};
     if (search && (search as string).trim()) {
       const searchTerm = (search as string).trim();
       userWhere.OR = [
@@ -437,12 +437,24 @@ export const getEventAttendees = async (req: Request, res: Response) => {
       if (checkedIn > 0) statusParts.push(`${checkedIn} Checked In`);
       if (voided > 0) statusParts.push(`${voided} Voided`);
 
+      let statusSummary = '';
+      if (statusParts.length === 0) {
+        // This should not happen if tickets are correctly categorized.
+        // Log for investigation instead of showing a misleading "No tickets" message.
+        console.error('Inconsistent ticket status counts for user', user.id, {
+          ticketCount: tickets.length,
+          tickets
+        });
+      } else {
+        statusSummary = statusParts.join(', ');
+      }
+
       return {
         userId: user.id,
         name: user.unit_id || user.email,
         email: user.email,
         ticketCount: tickets.length,
-        statusSummary: statusParts.join(', ') || 'No tickets'
+        statusSummary
       };
     });
 

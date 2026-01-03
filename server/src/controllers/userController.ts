@@ -65,7 +65,7 @@ export const getSelectableUsers = async (req: Request, res: Response) => {
     const { search = '' } = req.query;
 
     // Build where clause for ACTIVE and INVITED users
-    const whereClause: any = {
+    const whereClause: Prisma.UserWhereInput = {
       status: {
         in: ['ACTIVE', 'INVITED']
       }

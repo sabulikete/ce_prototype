@@ -50,8 +50,9 @@ const IssueTicketsModal: React.FC<IssueTicketsModalProps> = ({ isOpen, onClose, 
         status: user.status
       }));
       setUsers(options);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load users');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load users';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
