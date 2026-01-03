@@ -20,8 +20,9 @@
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
 | `page` | integer | No | 1 | Page number (1-indexed) |
-| `limit` | integer | No | 20 | Items per page (fixed at 20) |
 | `search` | string | No | - | Filter by user name/email (partial match) |
+
+**Note**: Page size is fixed at 20 items per page and is not configurable via query parameters.
 
 ### Headers
 

@@ -366,8 +366,8 @@ export const getEventAttendees = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid parameters' });
     }
 
-    // NOTE: The get-event-attendees contract defines a default page size of 20 and marks `limit` as optional.
-    // By API design we enforce a fixed page size of 20 here and therefore do not read a `limit` query parameter.
+    // NOTE: The get-event-attendees contract defines a fixed page size of 20.
+    // This is not configurable via query parameters per the API design.
     // See specs/002-event-detail-view/contracts/get-event-attendees.md for the pagination contract details.
     if (pageNum < 1) {
       return res.status(400).json({ error: 'Invalid pagination parameters (page >= 1)' });
