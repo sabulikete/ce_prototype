@@ -88,12 +88,13 @@ export const getSelectableUsers = async (req: Request, res: Response) => {
         unit_id: true,
         status: true
       },
-      // Order by unit_id first (nulls sorted last by MySQL default), then by email.
-      // This ensures users that have a unit_id (typically fully registered or linked members)
-      // appear first in selection lists, while email-only entries (no unit_id, often pending
-      // invitations or unlinked records) are shown after them.
-      // NOTE: This assumes MySQL default NULL sorting. If using a custom configuration,
-      // verify that NULLS LAST behavior is maintained so that unit_id-backed users remain first.
+      // Order by unit_id first, then by email.
+      // NOTE: In MySQL, when ordering ascending, NULL values are sorted FIRST by default.
+      // With this ordering, users without a unit_id (email-only entries, such as pending
+      // invitations or unlinked records) will appear before users that have a unit_id
+      // (typically fully registered or linked members).
+      // If different NULL ordering is required (e.g., unit_id-backed users should appear first),
+      // the query or database configuration must be adjusted to enforce that behavior.
       orderBy: [
         { unit_id: 'asc' },
         { email: 'asc' }

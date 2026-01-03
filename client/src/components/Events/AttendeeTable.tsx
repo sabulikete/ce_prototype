@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, ChevronLeft, ChevronRight, X } from 'lucide-react';
-import { getEventAttendees } from '../../services/api';
+import { getEventAttendees, getErrorMessage } from '../../services/api';
 
 interface Attendee {
   userId: number;
@@ -70,8 +70,8 @@ const AttendeeTable: React.FC<AttendeeTableProps> = ({ eventId }) => {
       });
       setAttendees(response.attendees);
       setPagination(response.pagination);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load attendees');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Failed to load attendees'));
       setAttendees([]);
     } finally {
       setLoading(false);

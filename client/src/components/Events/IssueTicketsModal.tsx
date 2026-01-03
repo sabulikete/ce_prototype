@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Select, { MultiValue } from 'react-select';
 import { X } from 'lucide-react';
-import { getSelectableUsers, issueTickets } from '../../services/api';
+import { getSelectableUsers, issueTickets, getErrorMessage } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 
 interface UserOption {
@@ -51,8 +51,7 @@ const IssueTicketsModal: React.FC<IssueTicketsModalProps> = ({ isOpen, onClose, 
       }));
       setUsers(options);
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load users';
-      setError(errorMessage);
+      setError(getErrorMessage(err, 'Failed to load users'));
     } finally {
       setLoading(false);
     }
@@ -69,8 +68,7 @@ const IssueTicketsModal: React.FC<IssueTicketsModalProps> = ({ isOpen, onClose, 
       setSelectedUsers([]);
       onClose();
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to issue tickets';
-      showToast(errorMessage, 'error');
+      showToast(getErrorMessage(err, 'Failed to issue tickets'), 'error');
     } finally {
       setSubmitting(false);
     }

@@ -366,9 +366,9 @@ export const getEventAttendees = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid parameters' });
     }
 
-    // NOTE: The current API contract/spec requires a fixed page size.
-    // We intentionally enforce this here to guarantee that behavior.
-    // See specs/002-event-detail-view/contracts/get-event-attendees.md for pagination requirements.
+    // NOTE: The get-event-attendees contract defines a default page size of 20 and marks `limit` as optional.
+    // By API design we enforce a fixed page size of 20 here and therefore do not read a `limit` query parameter.
+    // See specs/002-event-detail-view/contracts/get-event-attendees.md for the pagination contract details.
     if (pageNum < 1) {
       return res.status(400).json({ error: 'Invalid pagination parameters (page >= 1)' });
     }
@@ -446,6 +446,7 @@ export const getEventAttendees = async (req: Request, res: Response) => {
         // When this occurs, it usually indicates inconsistent status flags (for example,
         // missing checked_in_at and voided_at) or legacy/migrated records with unexpected values.
         // Review the tickets listed in the logs and correct their status fields as needed.
+        // TODO: Consider adding metrics/alerting for this condition to track frequency and investigate root cause.
         console.error('Inconsistent ticket status counts for user', user.id, {
           ticketCount: tickets.length,
           ticketIds: tickets.map(t => t.id), // Only log IDs to avoid exposing sensitive data

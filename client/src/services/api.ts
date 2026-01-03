@@ -1,5 +1,13 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
+// Utility function to extract error message from unknown error types
+export const getErrorMessage = (err: unknown, fallback: string = 'An error occurred'): string => {
+  if (err instanceof Error) {
+    return err.message;
+  }
+  return fallback;
+};
+
 const getHeaders = () => {
   const token = localStorage.getItem('token');
   return {

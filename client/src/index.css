@@ -30,6 +30,7 @@
   /* Responsive breakpoints */
   /* Note: CSS custom properties cannot be used in @media queries. */
   /* The tablet breakpoint (768px) is documented here and used consistently throughout. */
+  /* This variable is available for JavaScript access via getComputedStyle if needed. */
   --breakpoint-tablet: 768px;
 
   /* Typography */

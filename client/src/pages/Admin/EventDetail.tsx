@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Ticket } from 'lucide-react';
-import { getEventDetail } from '../../services/api';
+import { getEventDetail, getErrorMessage } from '../../services/api';
 import EventInfo from '../../components/Events/EventInfo';
 import TicketStats from '../../components/Events/TicketStats';
 import AttendeeTable from '../../components/Events/AttendeeTable';
@@ -52,12 +52,7 @@ const EventDetail: React.FC = () => {
       const data = await getEventDetail(parseInt(eventId));
       setEvent(data);
     } catch (err: unknown) {
-      // Handle both Error objects from api.ts and unexpected error types
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('Failed to load event details');
-      }
+      setError(getErrorMessage(err, 'Failed to load event details'));
     } finally {
       setLoading(false);
     }
