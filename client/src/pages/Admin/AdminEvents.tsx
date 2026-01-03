@@ -1,7 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Calendar, Plus, Ticket, Users, MapPin, Clock, CheckCircle, XCircle } from 'lucide-react';
-import { fetchContent, fetchEventAttendees, issueTickets, fetchUsers } from '../../services/api';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Calendar, Ticket, MapPin, CheckCircle, XCircle, BarChart3, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { fetchContent, fetchEventAttendees, issueTickets, fetchUsers, getDashboardMetrics, getDashboardEvents } from '../../services/api';
+import EventMetrics from '../../components/Events/EventMetrics';
+import EventList from '../../components/Events/EventList';
 import './AdminEvents.css';
+
+const ITEMS_PER_PAGE = 10;
 
 interface Event {
   id: number;
@@ -10,6 +14,19 @@ interface Event {
     start_at: string;
     end_at: string;
     location: string;
+  };
+}
+
+interface EventData {
+  id: string;
+  title: string;
+  startDate: string;
+  endDate: string;
+  location: string;
+  status: string;
+  ticketStats: {
+    issued: number;
+    checkedIn: number;
   };
 }
 
@@ -32,6 +49,20 @@ interface UserData {
 }
 
 const AdminEvents: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'tickets'>('dashboard');
+  
+  // Dashboard state
+  const [metrics, setMetrics] = useState({ totalUpcoming: 0, totalTicketsIssued: 0, avgCheckInRate: 0 });
+  const [dashboardEvents, setDashboardEvents] = useState<EventData[]>([]);
+  const [dashboardPagination, setDashboardPagination] = useState({ total: 0, page: 1, limit: ITEMS_PER_PAGE, totalPages: 0 });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [filterStatus, setFilterStatus] = useState<'upcoming' | 'past'>('upcoming');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [isDashboardLoading, setIsDashboardLoading] = useState(true);
+  const [dashboardError, setDashboardError] = useState<string | null>(null);
+  
+  // Ticket management state
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
@@ -40,6 +71,61 @@ const AdminEvents: React.FC = () => {
   const [users, setUsers] = useState<UserData[]>([]);
   const [selectedUserIds, setSelectedUserIds] = useState<number[]>([]);
   const [issuing, setIssuing] = useState(false);
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Load dashboard data
+  const loadDashboard = useCallback(async () => {
+    try {
+      setIsDashboardLoading(true);
+      setDashboardError(null);
+      const [metricsData, eventsData] = await Promise.all([
+        getDashboardMetrics(),
+        getDashboardEvents({
+          page: currentPage,
+          limit: ITEMS_PER_PAGE,
+          status: filterStatus,
+          search: debouncedSearch
+        })
+      ]);
+      
+      setMetrics(metricsData);
+      setDashboardEvents(eventsData.data);
+      setDashboardPagination(eventsData.meta);
+    } catch (error) {
+      console.error('Failed to load dashboard', error);
+      setDashboardError('Failed to load dashboard data. Please try again.');
+    } finally {
+      setIsDashboardLoading(false);
+    }
+  }, [currentPage, filterStatus, debouncedSearch]);
+
+  useEffect(() => {
+    if (activeTab === 'dashboard') {
+      loadDashboard();
+    }
+  }, [activeTab, loadDashboard]);
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleFilterChange = (newStatus: 'upcoming' | 'past') => {
+    setFilterStatus(newStatus);
+    setCurrentPage(1);
+  };
 
   const loadEvents = async () => {
     try {
@@ -109,9 +195,105 @@ const AdminEvents: React.FC = () => {
     <div className="admin-events-container">
       <div className="admin-header">
         <h1>Event Management</h1>
+        <div className="tab-navigation">
+          <button 
+            className={`tab-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
+            onClick={() => setActiveTab('dashboard')}
+          >
+            <BarChart3 size={18} /> Dashboard
+          </button>
+          <button 
+            className={`tab-btn ${activeTab === 'tickets' ? 'active' : ''}`}
+            onClick={() => setActiveTab('tickets')}
+          >
+            <Ticket size={18} /> Ticket Management
+          </button>
+        </div>
       </div>
 
-      <div className="events-layout">
+      {activeTab === 'dashboard' ? (
+        <div className="dashboard-view">
+          {/* Metrics Section */}
+          <EventMetrics 
+            totalUpcoming={metrics.totalUpcoming}
+            totalTicketsIssued={metrics.totalTicketsIssued}
+            avgCheckInRate={metrics.avgCheckInRate}
+          />
+
+          {/* Search and Filter Controls */}
+          <div className="dashboard-controls">
+            <div className="search-box">
+              <Search size={18} />
+              <input
+                type="text"
+                placeholder="Search events by title..."
+                value={searchQuery}
+                onChange={handleSearchChange}
+              />
+            </div>
+            <div className="filter-buttons">
+              <button 
+                className={`filter-btn ${filterStatus === 'upcoming' ? 'active' : ''}`}
+                onClick={() => handleFilterChange('upcoming')}
+              >
+                Upcoming
+              </button>
+              <button 
+                className={`filter-btn ${filterStatus === 'past' ? 'active' : ''}`}
+                onClick={() => handleFilterChange('past')}
+              >
+                Past
+              </button>
+            </div>
+          </div>
+
+          {/* Event List */}
+          {dashboardError ? (
+            <div className="error-state">
+              <XCircle size={48} />
+              <p>{dashboardError}</p>
+              <button className="btn-primary" onClick={loadDashboard}>
+                Retry
+              </button>
+            </div>
+          ) : isDashboardLoading ? (
+            <div className="loading">Loading events...</div>
+          ) : dashboardEvents.length === 0 ? (
+            <div className="empty-state">
+              <Calendar size={48} />
+              <p>{searchQuery ? 'No results found' : `No ${filterStatus} events`}</p>
+            </div>
+          ) : (
+            <>
+              <EventList events={dashboardEvents} />
+              
+              {/* Pagination Controls */}
+              {dashboardPagination.totalPages > 1 && (
+                <div className="pagination-controls">
+                  <button
+                    onClick={() => handlePageChange(dashboardPagination.page - 1)}
+                    disabled={dashboardPagination.page === 1}
+                    className="pagination-btn"
+                  >
+                    <ChevronLeft size={18} /> Previous
+                  </button>
+                  <span className="pagination-info">
+                    Page {dashboardPagination.page} of {dashboardPagination.totalPages}
+                  </span>
+                  <button
+                    onClick={() => handlePageChange(dashboardPagination.page + 1)}
+                    disabled={dashboardPagination.page === dashboardPagination.totalPages}
+                    className="pagination-btn"
+                  >
+                    Next <ChevronRight size={18} />
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      ) : (
+        <div className="events-layout">
         <div className="events-sidebar">
           <h3>Upcoming Events</h3>
           {isLoading ? (
@@ -218,7 +400,8 @@ const AdminEvents: React.FC = () => {
           )}
         </div>
       </div>
-
+      )}
+      
       {showIssueModal && (
         <div className="modal-overlay">
           <div className="modal-content">

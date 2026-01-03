@@ -1,13 +1,20 @@
-const express = require('express');
-const router = express.Router();
-const Event = require('../models/Event');
-const { Op } = require('sequelize');
+import { Router } from 'express';
+import * as eventController from '../controllers/eventController';
+import { authenticate, requireRole } from '../middleware/auth';
+import Event from '../models/Event';
+import { Op } from 'sequelize';
+
+const router = Router();
+
+// Dashboard endpoints (protected for admins only)
+router.get('/admin/events/metrics', authenticate, requireRole(['ADMIN']), eventController.getDashboardMetrics);
+router.get('/admin/events', authenticate, requireRole(['ADMIN']), eventController.getEvents);
 
 // GET /api/events - List events (supporting filter)
 router.get('/', async (req, res) => {
     try {
         const { visibility } = req.query;
-        const where = {};
+        const where: any = {};
         if (visibility === 'PUBLIC') {
             where.visibility = 'PUBLIC';
         }
@@ -19,7 +26,7 @@ router.get('/', async (req, res) => {
 
         const events = await Event.findAll({ where, order: [['date', 'ASC']] });
         res.json(events);
-    } catch (err) {
+    } catch (err: any) {
         res.status(500).json({ error: err.message });
     }
 });
@@ -29,7 +36,7 @@ router.post('/', async (req, res) => {
     try {
         const event = await Event.create(req.body);
         res.json(event);
-    } catch (err) {
+    } catch (err: any) {
         res.status(500).json({ error: err.message });
     }
 });
@@ -39,9 +46,9 @@ router.delete('/:id', async (req, res) => {
     try {
         await Event.destroy({ where: { id: req.params.id } });
         res.json({ success: true });
-    } catch (err) {
+    } catch (err: any) {
         res.status(500).json({ error: err.message });
     }
 });
 
-module.exports = router;
+export default router;

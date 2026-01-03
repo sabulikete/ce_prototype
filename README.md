@@ -5,7 +5,7 @@ A full-stack web application for community management with member portal, billin
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js (v14+)
+- Node.js (v18+)
 - npm
 
 ### Installation
@@ -18,28 +18,29 @@ cd /Users/mike/Developer/ce_app
 2. **Start the Backend Server**
 ```bash
 cd server
-npm install  # (already done)
-node src/index.js
+npm install
+npx prisma db seed  # Seed the database with initial admin user
+npm run dev
 ```
 Server runs on `http://localhost:3000`
 
 3. **Start the Frontend (in a new terminal)**
 ```bash
 cd client
-npm install  # (already done)
+npm install
 npm run dev
 ```
-Client runs on `http://localhost:5174`
+Client runs on `http://localhost:5173` (or 5174 if 5173 is busy)
 
 ## 🔐 Demo Credentials
 
 ### Admin Account
-- Email: `admin@ce.app`
+- Email: `admin@example.com`
 - Password: `admin`
 
 ### Member Account
-- Email: `member@ce.app`
-- Password: `member`
+- You can invite a new member from the Admin > User Management page.
+- Or use the seed data if available.
 
 ## ✨ Features Implemented
 
@@ -48,8 +49,8 @@ Client runs on `http://localhost:5174`
 - ✅ Generate unique activation tokens
 - ✅ Copy invite links
 - ✅ User activation flow
-- ✅ Role-based access (Admin/Member)
-- ✅ Database-backed authentication
+- ✅ Role-based access (Admin/Staff/Member)
+- ✅ Database-backed authentication (Prisma + SQLite/MySQL)
 
 ### 2. **Content Management** (`/admin/posts`)
 - ✅ Unified system for Announcements, Events, and Memos
@@ -57,7 +58,6 @@ Client runs on `http://localhost:5174`
 - ✅ Draft/Published/Archived status
 - ✅ Pin important posts
 - ✅ Event scheduling with dates and locations
-- ✅ Real-time updates
 
 ### 3. **Billing Management**
 - ✅ Admin: Bulk ZIP upload simulation (`/admin/billing`)
@@ -65,154 +65,52 @@ Client runs on `http://localhost:5174`
 - ✅ 3-month rolling window enforcement
 - ✅ Filename parsing and validation
 
-### 4. **Event Management** (`/admin/events`)
-- ✅ QR code ticket generation
-- ✅ Simulated scanner for validation
-- ✅ Event creation and management
+### 4. **Event & Ticket System**
+- ✅ **Event Creation**: Admins can create and schedule events.
+- ✅ **Ticket Generation**: Members receive QR code tickets for events (`/tickets`).
+- ✅ **Downloadable Tickets**: Members can download their QR codes as images.
+- ✅ **Ticket Scanner** (`/scanner`):
+    - 📷 **Real Camera Support**: Staff/Admins can scan QR codes using the device camera.
+    - ⌨️ **Manual Entry**: Fallback for manual token entry.
+    - ✅ **Validation**: Real-time check-in validation against the database.
 
-### 5. **Public Landing Page** (`/`)
-- ✅ Displays public announcements
-- ✅ Shows upcoming public events
-- ✅ Premium glassmorphism design
-- ✅ Responsive layout
+### 5. **Modern UI/UX**
+- ✅ **Glassmorphism Design**: Premium look for Login, Dashboard, and Landing pages.
+- ✅ **Responsive Layout**: Works on mobile and desktop.
+- ✅ **Public Landing Page**: Displays public announcements and events.
 
 ## 📁 Project Structure
 
 ```
 ce_app/
-├── server/                 # Backend (Node.js + Express + Sequelize)
+├── server/                 # Backend (Node.js + Express + Prisma)
 │   ├── src/
-│   │   ├── config/        # Database configuration
-│   │   ├── models/        # Sequelize models (User, Post)
+│   │   ├── config/        # Configuration
+│   │   ├── controllers/   # Route controllers
+│   │   ├── middleware/    # Auth & Validation middleware
+│   │   ├── models/        # Prisma models (schema.prisma)
 │   │   ├── routes/        # API routes
-│   │   └── index.js       # Server entry point
-│   └── database.sqlite    # SQLite database (auto-generated)
+│   │   ├── services/      # Business logic (QR, Auth)
+│   │   └── server.ts      # Server entry point
+│   ├── prisma/            # Database schema and seed data
+│   └── database.sqlite    # SQLite database (dev)
 │
-├── client/                # Frontend (React + Vite)
+├── client/                # Frontend (React + Vite + TypeScript)
 │   ├── src/
-│   │   ├── components/    # Reusable components (Sidebar, Layout)
+│   │   ├── components/    # Reusable components
+│   │   │   ├── Events/    # Ticket & Event components
+│   │   │   ├── Layout/    # Sidebar & MainLayout
 │   │   ├── context/       # React Context (Auth)
 │   │   ├── pages/         # Page components
-│   │   │   ├── Admin/    # Admin-only pages
-│   │   │   ├── Login.jsx
-│   │   │   ├── Dashboard.jsx
-│   │   │   ├── Billing.jsx
-│   │   │   ├── LandingPage.jsx
-│   │   │   └── AcceptInvite.jsx
-│   │   └── App.jsx        # Main app with routing
-│   └── vite.config.js     # Vite config with API proxy
-│
-└── product_specs/         # Product specifications
+│   │   │   ├── Admin/     # Admin management pages
+│   │   │   ├── Scanner.tsx # QR Code Scanner
+│   │   │   ├── Login.tsx
+│   │   │   ├── Dashboard.tsx
+│   │   │   ├── LandingPage.tsx
 ```
 
-## 🔌 API Endpoints
+## 🛠 Tech Stack
 
-### Authentication
-- `POST /api/auth/login` - User login
-
-### Users
-- `GET /api/users` - List all users
-- `POST /api/users/invite` - Invite new user
-- `POST /api/users/activate` - Activate account with token
-- `DELETE /api/users/:id` - Delete user
-
-### Posts (Announcements, Events, Memos)
-- `GET /api/posts?type=announcement&visibility=public` - List posts
-- `POST /api/posts` - Create post
-- `PATCH /api/posts/:id` - Update post
-- `DELETE /api/posts/:id` - Delete post
-
-## 🎨 Design System
-
-- **Theme**: Dark mode with glassmorphism
-- **Colors**: Purple/Violet primary with gradient accents
-- **Typography**: System fonts with custom weights
-- **Components**: Reusable glass panels, buttons, inputs
-- **Animations**: Smooth transitions and ambient backgrounds
-
-## 📚 Documentation
-
-- [Content Management System](./CONTENT_MANAGEMENT.md) - Detailed guide for posts/events/announcements
-- [Product Specs](./product_specs/) - Full product specifications
-
-## 🛠️ Tech Stack
-
-### Backend
-- Node.js + Express
-- Sequelize ORM
-- SQLite (dev) / MySQL (production-ready)
-- JWT for authentication (mocked for MVP)
-
-### Frontend
-- React 18
-- React Router v6
-- Vite (build tool)
-- Lucide React (icons)
-- QRCode.react (QR generation)
-- Framer Motion (animations)
-
-## 🔄 Workflow
-
-### Inviting a New User
-1. Admin logs in → User Management
-2. Click "Invite New User"
-3. Enter email, name, role
-4. Click "Send Invite"
-5. Copy the invite link (🔗 icon)
-6. Share link with user
-7. User opens link → Sets password → Account activated
-8. User can now login
-
-### Creating Public Content
-1. Admin logs in → Content
-2. Select tab (Announcements/Events/Memos)
-3. Click "New [Type]"
-4. Fill in details
-5. Set Visibility to "Public"
-6. Click "Publish"
-7. Content appears on Landing Page immediately
-
-## 🐛 Troubleshooting
-
-### Server won't start
-```bash
-cd server
-pkill -f "node src/index.js"  # Kill any running instances
-rm database.sqlite            # Reset database
-node src/index.js
-```
-
-### Client won't start
-```bash
-cd client
-rm -rf node_modules
-npm install
-npm run dev
-```
-
-### Database issues
-The SQLite database is auto-created. To reset:
-```bash
-cd server
-rm database.sqlite
-node src/index.js  # Will recreate with seed data
-```
-
-## 🚧 Next Steps / Roadmap
-
-- [ ] Member Dashboard with personalized content
-- [ ] Email integration for invites
-- [ ] Rich text editor for posts
-- [ ] Image uploads
-- [ ] Comments system
-- [ ] RSVP for events
-- [ ] Push notifications
-- [ ] Mobile app (React Native)
-
-## 📄 License
-
-Proprietary - CE App
-
-## 👥 Team
-
-Built with ❤️ by the CE App team
+- **Frontend**: React, Vite, TypeScript, CSS Modules, Lucide React (Icons), html5-qrcode (Scanning), qrcode.react (Generation).
+- **Backend**: Node.js, Express, TypeScript, Prisma ORM.
+- **Database**: SQLite (Development), MySQL (Production ready).
