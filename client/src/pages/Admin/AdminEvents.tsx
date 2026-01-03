@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Calendar, Ticket, MapPin, CheckCircle, XCircle, BarChart3, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { fetchContent, fetchEventAttendees, issueTickets, fetchUsers, getDashboardMetrics, getDashboardEvents } from '../../services/api';
 import EventMetrics from '../../components/Events/EventMetrics';
@@ -80,7 +80,7 @@ const AdminEvents: React.FC = () => {
   }, [searchQuery]);
 
   // Load dashboard data
-  const loadDashboard = async () => {
+  const loadDashboard = useCallback(async () => {
     try {
       setIsDashboardLoading(true);
       setDashboardError(null);
@@ -103,13 +103,13 @@ const AdminEvents: React.FC = () => {
     } finally {
       setIsDashboardLoading(false);
     }
-  };
+  }, [currentPage, dashboardPagination.limit, filterStatus, debouncedSearch]);
 
   useEffect(() => {
     if (activeTab === 'dashboard') {
       loadDashboard();
     }
-  }, [activeTab, currentPage, filterStatus, debouncedSearch]);
+  }, [activeTab, loadDashboard]);
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);

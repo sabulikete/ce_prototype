@@ -163,14 +163,11 @@ export const getEvents = async (req: Request, res: Response) => {
 
     // Add search filter if provided
     if (search && (search as string).trim()) {
-      whereClause.content = {
-        is: {
-          status: 'PUBLISHED',
-          title: {
-            contains: (search as string).trim()
-          }
-        }
-      };
+      if (whereClause.content?.is) {
+        whereClause.content.is.title = {
+          contains: (search as string).trim()
+        };
+      }
     }
 
     // Get total count for pagination

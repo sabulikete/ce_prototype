@@ -56,7 +56,7 @@ const EventList: React.FC<EventListProps> = ({ events }) => {
               </td>
               <td>
                 {/* Smart Display: Show "X issued" for upcoming, "X/Y checked in" for past */}
-                {new Date(event.startDate) > now ? (
+                {new Date(event.endDate) >= now ? (
                   <span className="ticket-count">{event.ticketStats.issued} issued</span>
                 ) : (
                   <span className="ticket-count">
