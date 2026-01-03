@@ -5,6 +5,7 @@ import contentRoutes from './routes/content';
 import ticketRoutes from './routes/tickets';
 import billingRoutes from './routes/billing';
 import userRoutes from './routes/users';
+import eventRoutes from './routes/eventRoutes';
 
 const app = express();
 
@@ -36,5 +37,6 @@ app.use('/api', contentRoutes);
 app.use('/api', ticketRoutes);
 app.use('/api', billingRoutes);
 app.use('/api', userRoutes);
+app.use('/api', eventRoutes);
 
 export default app;
