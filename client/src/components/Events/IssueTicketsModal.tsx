@@ -17,6 +17,13 @@ interface IssueTicketsModalProps {
   eventId: number;
 }
 
+interface UserResponse {
+  id: number;
+  name: string;
+  email: string;
+  status: string;
+}
+
 const IssueTicketsModal: React.FC<IssueTicketsModalProps> = ({ isOpen, onClose, eventId }) => {
   const { showToast } = useToast();
   const [users, setUsers] = useState<UserOption[]>([]);
@@ -36,7 +43,7 @@ const IssueTicketsModal: React.FC<IssueTicketsModalProps> = ({ isOpen, onClose, 
       setLoading(true);
       setError(null);
       const response = await getSelectableUsers();
-      const options: UserOption[] = response.users.map((user: any) => ({
+      const options: UserOption[] = response.users.map((user: UserResponse) => ({
         value: user.id,
         label: user.name,
         email: user.email,

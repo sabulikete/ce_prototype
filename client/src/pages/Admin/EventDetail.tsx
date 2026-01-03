@@ -50,7 +50,7 @@ const EventDetail: React.FC = () => {
     } catch (err: unknown) {
       // Fetch-based error handling: rely on Error.message when available
       if (err instanceof Error) {
-        setError(err.message || 'Failed to load event details');
+        setError(err.message);
       } else {
         setError('Failed to load event details');
       }

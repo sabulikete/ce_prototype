@@ -89,9 +89,9 @@ const AdminEvents: React.FC = () => {
       setFilterStatus(status);
     }
     if (search) {
+      // Apply URL search immediately so initial load matches the URL state
       setSearchQuery(search);
-      // Don't set debouncedSearch here - let the debounce effect handle it
-      // This maintains consistent behavior with user-triggered searches
+      setDebouncedSearch(search);
     }
   }, []); // Only run on mount
 
@@ -153,7 +153,7 @@ const AdminEvents: React.FC = () => {
   const handleEventClick = (eventId: string) => {
     // Build returnTo URL with current state
     const searchParams = new URLSearchParams();
-    searchParams.set('page', dashboardPagination.page.toString());
+    searchParams.set('page', currentPage.toString());
     searchParams.set('status', filterStatus);
     if (debouncedSearch) {
       searchParams.set('search', debouncedSearch);

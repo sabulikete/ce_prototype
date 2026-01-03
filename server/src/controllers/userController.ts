@@ -88,10 +88,9 @@ export const getSelectableUsers = async (req: Request, res: Response) => {
         unit_id: true,
         status: true
       },
-      orderBy: [
-        { unit_id: 'asc' },
-        { email: 'asc' }
-      ]
+      orderBy: {
+        email: 'asc'
+      }
     });
 
     // Format users for response

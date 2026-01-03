@@ -310,7 +310,7 @@ export const getSelectableUsers = async (search?: string) => {
   if (search) queryParams.append('search', search);
 
   const response = await fetch(
-    `${API_URL}/users/selectable${search ? `?${queryParams.toString()}` : ''}`,
+    `${API_URL}/users/selectable?${queryParams.toString()}`,
     {
       headers: getHeaders(),
     }
