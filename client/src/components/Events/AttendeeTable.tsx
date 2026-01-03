@@ -34,6 +34,7 @@ const AttendeeTable: React.FC<AttendeeTableProps> = ({ eventId }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isInitialMount = React.useRef(true);
 
   // Debounce search input
   useEffect(() => {
@@ -46,6 +47,11 @@ const AttendeeTable: React.FC<AttendeeTableProps> = ({ eventId }) => {
 
   // Reset to page 1 whenever debounced search changes (when API call happens)
   useEffect(() => {
+    // Skip page reset on initial mount
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
     setCurrentPage(1);
   }, [debouncedSearch]);
 

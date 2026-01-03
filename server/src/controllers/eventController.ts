@@ -435,8 +435,15 @@ export const getEventAttendees = async (req: Request, res: Response) => {
         // Log for investigation instead of showing a misleading "No tickets" message.
         console.error('Inconsistent ticket status counts for user', user.id, {
           ticketCount: tickets.length,
+          issuedCount: issued,
+          checkedInCount: checkedIn,
+          voidedCount: voided,
           tickets,
-          note: 'User has tickets with inconsistent status - requires data investigation and possible data cleanup.'
+          note:
+            'No tickets for this user matched expected categories (issued, checked in, voided). ' +
+            'This usually indicates inconsistent status flags (e.g., missing checked_in_at and voided_at) ' +
+            'or legacy/migrated records with unexpected values. Review the tickets listed here and correct ' +
+            'their status fields as needed.'
         });
       } else {
         statusSummary = statusParts.join(', ');

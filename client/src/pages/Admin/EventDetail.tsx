@@ -26,6 +26,10 @@ interface EventDetailData {
   };
 }
 
+interface LocationState {
+  returnTo?: string;
+}
+
 const EventDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -61,7 +65,8 @@ const EventDetail: React.FC = () => {
 
   const handleBack = () => {
     // Read returnTo from location state or fallback to default
-    const returnTo = (location.state as any)?.returnTo || '/admin/events';
+    const state = location.state as LocationState | null;
+    const returnTo = state?.returnTo || '/admin/events';
     navigate(returnTo);
   };
 
