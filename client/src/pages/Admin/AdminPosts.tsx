@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Megaphone, Plus, Trash2, Globe, Lock, Pin, Eye, EyeOff, Edit, Calendar, FileText } from 'lucide-react';
+import { Megaphone, Plus, Trash2, Globe, Lock, Pin, Eye, EyeOff, Edit, Calendar, FileText, Info } from 'lucide-react';
 import { fetchContent, createContent, updateContent, deleteContent, updateContentStatus, pinContent } from '../../services/api';
 import './AdminPosts.css';
 
@@ -7,7 +7,7 @@ interface Post {
   id: number;
   title: string;
   body: string;
-  type: 'ANNOUNCEMENT' | 'EVENT' | 'POST';
+  type: 'ANNOUNCEMENT' | 'EVENT' | 'MEMO';
   status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
   visibility: 'PUBLIC' | 'MEMBER';
   is_pinned: boolean;
@@ -26,6 +26,7 @@ const AdminPosts: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [filterType, setFilterType] = useState<string>('ALL');
+  const [previousVisibility, setPreviousVisibility] = useState<'PUBLIC' | 'MEMBER'>('PUBLIC');
 
   const [formData, setFormData] = useState({
     title: '',
@@ -57,7 +58,28 @@ const AdminPosts: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Handle type changes with visibility management
+    if (name === 'type') {
+      const currentType = formData.type;
+      const newType = value;
+      
+      // Switching TO MEMO: save current visibility and set to MEMBER
+      if (newType === 'MEMO' && currentType !== 'MEMO') {
+        setPreviousVisibility(formData.visibility as 'PUBLIC' | 'MEMBER');
+        setFormData(prev => ({ ...prev, type: newType, visibility: 'MEMBER' }));
+      }
+      // Switching FROM MEMO to non-MEMO: restore previous visibility
+      else if (currentType === 'MEMO' && newType !== 'MEMO') {
+        setFormData(prev => ({ ...prev, type: newType, visibility: previousVisibility }));
+      }
+      // Other type changes: just update type
+      else {
+        setFormData(prev => ({ ...prev, [name]: value }));
+      }
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -175,7 +197,7 @@ const AdminPosts: React.FC = () => {
         <button className={filterType === 'ALL' ? 'active' : ''} onClick={() => setFilterType('ALL')}>All</button>
         <button className={filterType === 'ANNOUNCEMENT' ? 'active' : ''} onClick={() => setFilterType('ANNOUNCEMENT')}>Announcements</button>
         <button className={filterType === 'EVENT' ? 'active' : ''} onClick={() => setFilterType('EVENT')}>Events</button>
-        <button className={filterType === 'POST' ? 'active' : ''} onClick={() => setFilterType('POST')}>Posts</button>
+        <button className={filterType === 'MEMO' ? 'active' : ''} onClick={() => setFilterType('MEMO')}>Memorandum</button>
       </div>
 
       {isLoading ? (
@@ -200,8 +222,8 @@ const AdminPosts: React.FC = () => {
                     <span className={`type-badge ${post.type.toLowerCase()}`}>
                       {post.type === 'ANNOUNCEMENT' && <Megaphone size={14} />}
                       {post.type === 'EVENT' && <Calendar size={14} />}
-                      {post.type === 'POST' && <FileText size={14} />}
-                      {post.type}
+                      {post.type === 'MEMO' && <FileText size={14} />}
+                      {post.type === 'ANNOUNCEMENT' ? 'Announcement' : post.type === 'EVENT' ? 'Event' : post.type === 'MEMO' ? 'Memorandum' : post.type}
                     </span>
                   </td>
                   <td>{post.title}</td>
@@ -253,7 +275,7 @@ const AdminPosts: React.FC = () => {
                 <select name="type" value={formData.type} onChange={handleInputChange} disabled={isEditing}>
                   <option value="ANNOUNCEMENT">Announcement</option>
                   <option value="EVENT">Event</option>
-                  <option value="POST">Post</option>
+                  <option value="MEMO">Memorandum</option>
                 </select>
               </div>
 
@@ -317,10 +339,23 @@ const AdminPosts: React.FC = () => {
               <div className="form-row">
                 <div className="form-group">
                   <label>Visibility</label>
-                  <select name="visibility" value={formData.visibility} onChange={handleInputChange}>
+                  <select 
+                    name="visibility" 
+                    value={formData.visibility} 
+                    onChange={handleInputChange}
+                    disabled={formData.type === 'MEMO'}
+                    aria-label={formData.type === 'MEMO' ? 'Visibility (disabled for Memorandum - always member-only)' : 'Visibility'}
+                    title={formData.type === 'MEMO' ? 'Memorandum posts are always member-only' : ''}
+                  >
                     <option value="PUBLIC">Public</option>
                     <option value="MEMBER">Member Only</option>
                   </select>
+                  {formData.type === 'MEMO' && (
+                    <div className="helper-note">
+                      <Info size={14} className="icon" />
+                      Memorandum posts are member-only
+                    </div>
+                  )}
                 </div>
 
                 <div className="form-group">

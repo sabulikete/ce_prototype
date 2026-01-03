@@ -1,0 +1,11 @@
+# Ignore common build and dependency directories
+node_modules/
+dist/
+build/
+coverage/
+
+# Minified bundles
+*.min.js
+
+# Vite cache
+.cache/
