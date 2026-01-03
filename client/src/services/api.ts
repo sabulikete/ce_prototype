@@ -1,5 +1,8 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
+// Page size for event attendee lists (matches backend ATTENDEE_PAGE_SIZE)
+export const ATTENDEE_PAGE_SIZE = 20;
+
 // Utility function to extract error message from unknown error types
 export const getErrorMessage = (err: unknown, fallback: string = 'An error occurred'): string => {
   if (err instanceof Error) {
@@ -298,7 +301,7 @@ export const getEventAttendees = async (
 ) => {
   const queryParams = new URLSearchParams();
   queryParams.append('page', (params.page || 1).toString());
-  // Note: limit parameter omitted; backend enforces a fixed value of 20 per API contract
+  // Note: limit parameter omitted; backend enforces ATTENDEE_PAGE_SIZE (20) per API contract
   if (params.search) queryParams.append('search', params.search);
 
   const response = await fetch(
