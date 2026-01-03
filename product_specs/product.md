@@ -11,7 +11,6 @@ CE APP
     1. system pages
         1. landing page (guest)
         2. login
-        3. register
         4. admin dashboard
         5. events dashboard
         6. billing dashboard
@@ -154,3 +153,31 @@ CE APP
             18. Invoice edit
             19. Invoice add
         
+
+
+Admin
+1. Admin dashboard
+2. admin permissions -> add a feature where when user is staff or admin, you can choose what feature they can access
+3. admin permission preset -> add preset to staffs. (events admin can only access event management, event staff can only access ticket scanner and the can only see certain events)
+4. for user management, invited user should show up in the user management page with the invited status.
+5. admin should be able to edit any user's info, it could be name, email or even add permissions if the user is an admin or staff.
+6. in the user management page, add a search for user full name or email. also add a filter for active and inactive users. Show active users by default.
+7. The user table includes full name, email, role, status, joined date, last login.
+8. Change the post to memorandum type in the content page. - done
+
+
+Member
+1. member dashboard
+2. create a engagement their there are two ranking systems involve, one is for the app visit engagement and the second one is for frequency the user joins the events. ex. a user joins 1-3 events in a year have bronze badge, 4-8 silver badge and 9 and up gets a gold badge. but if on the consecutive year the user declined in attendance, the badge changes and lowers.
+3. profile page, which shows last login, tickets owned, user engagement (how often the user visits the page and the amount of events he/she joined. based on that there will be a badge based on the user engament)
+4. member billing page show the how much is the current bill, the last 3 bills and remainder on when to settle their bills.
+5. members can interact with any of the annoucements, events or posts by ticking interested icon on each of the posts.
+
+
+
+
+event scanning
+1. once ticket is scan, it will show the ticket name holder and how many ticket they own for that event. ex (Joe Doe 1 out of 4 scanned.) there is also a confirm button once click the qr code ticket would be checked in.
+2. The qr code should also contain the ticket number below the qr code itself to help with manual verification.
+
+
