@@ -147,6 +147,8 @@ const IssueTicketsModal: React.FC<IssueTicketsModalProps> = ({ isOpen, onClose, 
                 noOptionsMessage={() => "No users available"}
                 className="react-select-container"
                 classNamePrefix="react-select"
+                aria-label="Select users for ticket issuance"
+                aria-busy={loading}
               />
             </>
           )}

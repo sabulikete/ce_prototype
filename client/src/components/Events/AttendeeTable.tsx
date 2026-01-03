@@ -66,7 +66,6 @@ const AttendeeTable: React.FC<AttendeeTableProps> = ({ eventId }) => {
       setError(null);
       const response = await getEventAttendees(eventId, {
         page: currentPage,
-        limit: 20,
         search: debouncedSearch
       });
       setAttendees(response.attendees);

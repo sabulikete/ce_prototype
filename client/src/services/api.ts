@@ -286,11 +286,11 @@ export const getEventDetail = async (eventId: number) => {
 
 export const getEventAttendees = async (
   eventId: number,
-  params: { page?: number; limit?: number; search?: string }
+  params: { page?: number; search?: string }
 ) => {
   const queryParams = new URLSearchParams();
   queryParams.append('page', (params.page || 1).toString());
-  queryParams.append('limit', (params.limit || 20).toString());
+  // Note: limit is fixed at 20 on the backend per API contract
   if (params.search) queryParams.append('search', params.search);
 
   const response = await fetch(

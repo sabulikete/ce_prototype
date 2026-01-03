@@ -346,20 +346,20 @@ export const getEventDetail = async (req: Request, res: Response) => {
 export const getEventAttendees = async (req: Request, res: Response) => {
   try {
     const { eventId } = req.params;
-    const { page = '1', limit = '20', search = '' } = req.query;
+    const { page = '1', search = '' } = req.query;
     
     const eventIdNum = parseInt(eventId);
     const pageNum = parseInt(page as string);
-    const limitNum = parseInt(limit as string);
+    const limitNum = ATTENDEE_PAGE_SIZE;
 
-    if (isNaN(eventIdNum) || isNaN(pageNum) || isNaN(limitNum)) {
+    if (isNaN(eventIdNum) || isNaN(pageNum)) {
       return res.status(400).json({ error: 'Invalid parameters' });
     }
 
     // NOTE: The current API contract/spec requires a fixed page size.
     // We intentionally enforce this here to guarantee that behavior.
-    if (pageNum < 1 || limitNum !== ATTENDEE_PAGE_SIZE) {
-      return res.status(400).json({ error: `Invalid pagination parameters (page >= 1, limit = ${ATTENDEE_PAGE_SIZE})` });
+    if (pageNum < 1) {
+      return res.status(400).json({ error: 'Invalid pagination parameters (page >= 1)' });
     }
 
     // Verify event exists
@@ -438,7 +438,7 @@ export const getEventAttendees = async (req: Request, res: Response) => {
           issuedCount: issued,
           checkedInCount: checkedIn,
           voidedCount: voided,
-          tickets,
+          ticketIds: tickets.map(t => t.id), // Only log IDs to avoid exposing sensitive data
           note:
             'No tickets for this user matched expected categories (issued, checked in, voided). ' +
             'This usually indicates inconsistent status flags (e.g., missing checked_in_at and voided_at) ' +
