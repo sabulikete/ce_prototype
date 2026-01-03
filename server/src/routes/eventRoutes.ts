@@ -7,8 +7,8 @@ import { Op } from 'sequelize';
 const router = Router();
 
 // Dashboard endpoints (protected for admins only)
-router.get('/events/admin/dashboard/metrics', authenticate, requireRole(['ADMIN']), eventController.getDashboardMetrics);
-router.get('/events/admin/dashboard/events', authenticate, requireRole(['ADMIN']), eventController.getEvents);
+router.get('/admin/events/metrics', authenticate, requireRole(['ADMIN']), eventController.getDashboardMetrics);
+router.get('/admin/events', authenticate, requireRole(['ADMIN']), eventController.getEvents);
 
 // GET /api/events - List events (supporting filter)
 router.get('/', async (req, res) => {

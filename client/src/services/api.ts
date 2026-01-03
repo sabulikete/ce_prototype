@@ -245,7 +245,7 @@ export const checkInTicket = async (ticketToken: string, eventId: number) => {
 
 // Dashboard API methods
 export const getDashboardMetrics = async () => {
-  const response = await fetch(`${API_URL}/events/admin/dashboard/metrics`, {
+  const response = await fetch(`${API_URL}/admin/events/metrics`, {
     headers: getHeaders(),
   });
   if (!response.ok) {
@@ -261,7 +261,7 @@ export const getDashboardEvents = async (params: { page?: number; limit?: number
   if (params.status) queryParams.append('status', params.status);
   if (params.search) queryParams.append('search', params.search);
 
-  const response = await fetch(`${API_URL}/events/admin/dashboard/events?${queryParams.toString()}`, {
+  const response = await fetch(`${API_URL}/admin/events?${queryParams.toString()}`, {
     headers: getHeaders(),
   });
   if (!response.ok) {
