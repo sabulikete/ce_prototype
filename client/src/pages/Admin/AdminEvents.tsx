@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Calendar, Ticket, MapPin, CheckCircle, XCircle, BarChart3, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { fetchContent, fetchEventAttendees, issueTickets, fetchUsers, getDashboardMetrics, getDashboardEvents } from '../../services/api';
 import EventMetrics from '../../components/Events/EventMetrics';
@@ -49,6 +50,8 @@ interface UserData {
 }
 
 const AdminEvents: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'tickets'>('dashboard');
   
   // Dashboard state
@@ -71,6 +74,26 @@ const AdminEvents: React.FC = () => {
   const [users, setUsers] = useState<UserData[]>([]);
   const [selectedUserIds, setSelectedUserIds] = useState<number[]>([]);
   const [issuing, setIssuing] = useState(false);
+
+  // Initialize state from URL search params on mount
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const page = searchParams.get('page');
+    const status = searchParams.get('status');
+    const search = searchParams.get('search');
+
+    if (page) {
+      setCurrentPage(parseInt(page));
+    }
+    if (status === 'upcoming' || status === 'past') {
+      setFilterStatus(status);
+    }
+    if (search) {
+      // Apply URL search immediately so initial load matches the URL state
+      setSearchQuery(search);
+      setDebouncedSearch(search);
+    }
+  }, []); // Only run on mount
 
   // Debounce search input
   useEffect(() => {
@@ -127,6 +150,22 @@ const AdminEvents: React.FC = () => {
     setCurrentPage(1);
   };
 
+  const handleEventClick = (eventId: string) => {
+    // Build returnTo URL with current state
+    const searchParams = new URLSearchParams();
+    searchParams.set('page', currentPage.toString());
+    searchParams.set('status', filterStatus);
+    if (debouncedSearch) {
+      searchParams.set('search', debouncedSearch);
+    }
+    const returnTo = `/admin/events?${searchParams.toString()}`;
+    
+    // Navigate to detail page with state
+    navigate(`/admin/events/${eventId}`, {
+      state: { returnTo }
+    });
+  };
+
   const loadEvents = async () => {
     try {
       setIsLoading(true);
@@ -143,7 +182,7 @@ const AdminEvents: React.FC = () => {
     loadEvents();
   }, []);
 
-  const handleEventClick = async (event: Event) => {
+  const handleEventSelect = async (event: Event) => {
     setSelectedEvent(event);
     try {
       const data = await fetchEventAttendees(event.id);
@@ -265,7 +304,7 @@ const AdminEvents: React.FC = () => {
             </div>
           ) : (
             <>
-              <EventList events={dashboardEvents} />
+              <EventList events={dashboardEvents} onEventClick={handleEventClick} />
               
               {/* Pagination Controls */}
               {dashboardPagination.totalPages > 1 && (
@@ -304,7 +343,7 @@ const AdminEvents: React.FC = () => {
                 <div 
                   key={event.id} 
                   className={`event-card ${selectedEvent?.id === event.id ? 'active' : ''}`}
-                  onClick={() => handleEventClick(event)}
+                  onClick={() => handleEventSelect(event)}
                 >
                   <div className="event-card-header">
                     <span className="event-title">{event.title}</span>

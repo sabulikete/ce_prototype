@@ -16,9 +16,10 @@ interface EventData {
 
 interface EventListProps {
   events: EventData[];
+  onEventClick?: (eventId: string) => void;
 }
 
-const EventList: React.FC<EventListProps> = ({ events }) => {
+const EventList: React.FC<EventListProps> = ({ events, onEventClick }) => {
   const now = new Date();
   
   return (
@@ -35,7 +36,12 @@ const EventList: React.FC<EventListProps> = ({ events }) => {
         </thead>
         <tbody>
           {events.map(event => (
-            <tr key={event.id}>
+            <tr 
+              key={event.id}
+              onClick={() => onEventClick?.(event.id)}
+              className={onEventClick ? 'clickable-row' : ''}
+              style={onEventClick ? { cursor: 'pointer' } : {}}
+            >
               <td>{event.title}</td>
               <td>
                 <div className="date-cell">

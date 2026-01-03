@@ -1,5 +1,16 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
+// Page size for event attendee lists (matches backend ATTENDEE_PAGE_SIZE)
+export const ATTENDEE_PAGE_SIZE = 20;
+
+// Utility function to extract error message from unknown error types
+export const getErrorMessage = (err: unknown, fallback: string = 'An error occurred'): string => {
+  if (err instanceof Error) {
+    return err.message;
+  }
+  return fallback;
+};
+
 const getHeaders = () => {
   const token = localStorage.getItem('token');
   return {
@@ -270,3 +281,53 @@ export const getDashboardEvents = async (params: { page?: number; limit?: number
   return response.json();
 };
 
+// Event Detail API methods
+export const getEventDetail = async (eventId: number) => {
+  const response = await fetch(`${API_URL}/admin/events/${eventId}`, {
+    headers: getHeaders(),
+  });
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error('Event not found');
+    }
+    throw new Error(`Failed to fetch event detail: ${response.status} ${response.statusText}`);
+  }
+  return response.json();
+};
+
+export const getEventAttendees = async (
+  eventId: number,
+  params: { page?: number; search?: string }
+) => {
+  const queryParams = new URLSearchParams();
+  queryParams.append('page', (params.page || 1).toString());
+  // Note: limit parameter omitted; backend enforces ATTENDEE_PAGE_SIZE (20) per API contract
+  if (params.search) queryParams.append('search', params.search);
+
+  const response = await fetch(
+    `${API_URL}/admin/events/${eventId}/attendees?${queryParams.toString()}`,
+    {
+      headers: getHeaders(),
+    }
+  );
+  if (!response.ok) {
+    throw new Error('Failed to fetch attendees');
+  }
+  return response.json();
+};
+
+export const getSelectableUsers = async (search?: string) => {
+  const queryParams = new URLSearchParams();
+  if (search) queryParams.append('search', search);
+
+  const response = await fetch(
+    `${API_URL}/users/selectable?${queryParams.toString()}`,
+    {
+      headers: getHeaders(),
+    }
+  );
+  if (!response.ok) {
+    throw new Error('Failed to fetch users');
+  }
+  return response.json();
+};
