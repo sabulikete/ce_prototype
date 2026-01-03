@@ -74,7 +74,7 @@ Content-Type: application/json
   - `ACTIVE`: User has completed account activation
   - `INVITED`: User invited but hasn't activated account yet
 
-**Sorting**: Users returned in alphabetical order by name (or email if name is null)
+**Sorting**: Users returned ordered by name (unit_id), then by email. In MySQL, NULL values sort first in ascending order, so invited users without a name (NULL unit_id) appear before registered members with names.
 
 ---
 
