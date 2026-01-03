@@ -27,6 +27,11 @@
   /* Skeleton loading shimmer */
   --skeleton-shimmer: rgba(255, 255, 255, 0.1);
 
+  /* Responsive breakpoints */
+  /* Note: CSS custom properties cannot be used in @media queries. */
+  /* The tablet breakpoint (768px) is documented here and used consistently throughout. */
+  --breakpoint-tablet: 768px;
+
   /* Typography */
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 

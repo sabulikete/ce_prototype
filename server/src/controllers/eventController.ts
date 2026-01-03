@@ -368,6 +368,7 @@ export const getEventAttendees = async (req: Request, res: Response) => {
 
     // NOTE: The current API contract/spec requires a fixed page size.
     // We intentionally enforce this here to guarantee that behavior.
+    // See specs/002-event-detail-view/contracts/get-event-attendees.md for pagination requirements.
     if (pageNum < 1) {
       return res.status(400).json({ error: 'Invalid pagination parameters (page >= 1)' });
     }
@@ -442,18 +443,13 @@ export const getEventAttendees = async (req: Request, res: Response) => {
       let statusSummary = '';
       if (statusParts.length === 0) {
         // This should not happen if tickets are correctly categorized.
-        // Log for investigation instead of showing a misleading "No tickets" message.
+        // When this occurs, it usually indicates inconsistent status flags (for example,
+        // missing checked_in_at and voided_at) or legacy/migrated records with unexpected values.
+        // Review the tickets listed in the logs and correct their status fields as needed.
         console.error('Inconsistent ticket status counts for user', user.id, {
           ticketCount: tickets.length,
-          issuedCount: issued,
-          checkedInCount: checkedIn,
-          voidedCount: voided,
           ticketIds: tickets.map(t => t.id), // Only log IDs to avoid exposing sensitive data
-          note:
-            'No tickets for this user matched expected categories (issued, checked in, voided). ' +
-            'This usually indicates inconsistent status flags (e.g., missing checked_in_at and voided_at) ' +
-            'or legacy/migrated records with unexpected values. Review the tickets listed here and correct ' +
-            'their status fields as needed.'
+          message: 'No tickets for this user matched expected categories (issued, checked in, voided).'
         });
         // Provide a visible fallback instead of leaving statusSummary blank in the UI.
         statusSummary = 'Unknown Status';
