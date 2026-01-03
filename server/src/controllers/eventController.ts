@@ -139,8 +139,7 @@ export const getEvents = async (req: Request, res: Response) => {
     if (search && (search as string).trim()) {
       whereClause.content = {
         title: {
-          contains: (search as string).trim(),
-          mode: 'insensitive'
+          contains: (search as string).trim()
         }
       };
     }
