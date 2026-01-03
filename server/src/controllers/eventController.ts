@@ -6,6 +6,9 @@ const prisma = new PrismaClient();
 // Shared condition for filtering non-voided tickets to improve maintainability
 const ACTIVE_TICKET_CONDITION = { voided_at: null } as const;
 
+// API contract enforces fixed page size for attendee lists
+const ATTENDEE_PAGE_SIZE = 20;
+
 export const getDashboardMetrics = async (req: Request, res: Response) => {
   try {
     const now = new Date();
@@ -353,10 +356,10 @@ export const getEventAttendees = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid parameters' });
     }
 
-    // NOTE: The current API contract/spec requires a fixed page size of 20 items.
-    // We intentionally enforce `limitNum === 20` here to guarantee that behavior.
-    if (pageNum < 1 || limitNum !== 20) {
-      return res.status(400).json({ error: 'Invalid pagination parameters (page >= 1, limit = 20)' });
+    // NOTE: The current API contract/spec requires a fixed page size.
+    // We intentionally enforce this here to guarantee that behavior.
+    if (pageNum < 1 || limitNum !== ATTENDEE_PAGE_SIZE) {
+      return res.status(400).json({ error: `Invalid pagination parameters (page >= 1, limit = ${ATTENDEE_PAGE_SIZE})` });
     }
 
     // Verify event exists
@@ -433,7 +436,7 @@ export const getEventAttendees = async (req: Request, res: Response) => {
         console.error('Inconsistent ticket status counts for user', user.id, {
           ticketCount: tickets.length,
           tickets,
-          note: 'No issued, checked-in, or voided tickets were counted. This may indicate that all tickets have null status-related fields (e.g., checked_in_at and voided_at) or an unexpected categorization change. Please investigate and perform data cleanup if necessary.'
+          note: 'User has tickets with inconsistent status - requires data investigation and possible data cleanup.'
         });
       } else {
         statusSummary = statusParts.join(', ');

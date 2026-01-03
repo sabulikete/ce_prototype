@@ -143,7 +143,7 @@ const IssueTicketsModal: React.FC<IssueTicketsModalProps> = ({ isOpen, onClose, 
                 closeMenuOnSelect={false}
                 isLoading={loading}
                 isDisabled={submitting}
-                placeholder={loading ? "Loading users..." : "Search and select users..."}
+                placeholder={loading ? "Loading users..." : "Search and select users"}
                 noOptionsMessage={() => "No users available"}
                 className="react-select-container"
                 classNamePrefix="react-select"

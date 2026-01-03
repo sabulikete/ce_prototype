@@ -88,6 +88,8 @@ export const getSelectableUsers = async (req: Request, res: Response) => {
         unit_id: true,
         status: true
       },
+      // Order by unit_id first (nulls sorted last by MySQL default), then by email
+      // Users without unit_id will appear after users with unit_id
       orderBy: [
         { unit_id: 'asc' },
         { email: 'asc' }

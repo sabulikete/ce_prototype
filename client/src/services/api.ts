@@ -279,7 +279,7 @@ export const getEventDetail = async (eventId: number) => {
     if (response.status === 404) {
       throw new Error('Event not found');
     }
-    throw new Error('Failed to fetch event detail');
+    throw new Error(`Failed to fetch event detail: ${response.status} ${response.statusText}`);
   }
   return response.json();
 };

@@ -231,7 +231,7 @@ const attendees: AttendeeView[] = ticketAggregates.map(agg => {
 
 **Pagination**: 20 items per page (per FR-010, FR-011)
 
-**Search**: Filters by user email or unit_id (case-sensitive in MySQL, use `contains`)
+**Search**: Filters by user email or unit_id (implemented via Prisma `contains`; effective case sensitivity follows the MySQL collation, typically case-insensitive)
 
 **Performance**: 
 - With indexes on `(eventId, userId)`: <100ms for 200 attendees

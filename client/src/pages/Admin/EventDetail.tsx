@@ -48,7 +48,7 @@ const EventDetail: React.FC = () => {
       const data = await getEventDetail(parseInt(id));
       setEvent(data);
     } catch (err: unknown) {
-      // Fetch-based error handling: rely on Error.message when available
+      // Handle both Error objects from api.ts and unexpected error types
       if (err instanceof Error) {
         setError(err.message);
       } else {
