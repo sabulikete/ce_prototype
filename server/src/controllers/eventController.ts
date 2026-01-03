@@ -145,30 +145,27 @@ export const getEvents = async (req: Request, res: Response) => {
 
     const now = new Date();
     
-    // Build the where clause
-    const whereClause: Prisma.EventWhereInput = {
-      content: {
-        is: {
-          status: 'PUBLISHED'
+    // Prepare search filter
+    const trimmedSearch = typeof search === 'string' ? search.trim() : '';
+    
+    const contentFilter: Prisma.ContentWhereInput = {
+      status: 'PUBLISHED',
+      ...(trimmedSearch && {
+        title: {
+          contains: trimmedSearch
         }
-      }
+      })
     };
     
-    // Filter by status (upcoming or past)
-    if (status === 'upcoming') {
-      whereClause.start_at = { gte: now };
-    } else {
-      whereClause.end_at = { lt: now };
-    }
-
-    // Add search filter if provided
-    if (search && (search as string).trim()) {
-      if (whereClause.content?.is) {
-        whereClause.content.is.title = {
-          contains: (search as string).trim()
-        };
+    // Build the where clause immutably
+    const whereClause: Prisma.EventWhereInput = {
+      ...(status === 'upcoming'
+        ? { start_at: { gte: now } }
+        : { end_at: { lt: now } }),
+      content: {
+        is: contentFilter
       }
-    }
+    };
 
     // Get total count for pagination
     const total = await prisma.event.count({
