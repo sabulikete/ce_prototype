@@ -90,7 +90,8 @@ const AdminEvents: React.FC = () => {
     }
     if (search) {
       setSearchQuery(search);
-      setDebouncedSearch(search);
+      // Don't set debouncedSearch here - let the debounce effect handle it
+      // This maintains consistent behavior with user-triggered searches
     }
   }, []); // Only run on mount
 

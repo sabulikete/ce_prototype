@@ -608,6 +608,7 @@ body {
     gap: 0.75rem;
   }
 
-  .pagination-bt  transfordth: 100%;
+  .pagination-btn {
+    width: 100%;
   }
 }

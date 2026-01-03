@@ -3,6 +3,9 @@ import { PrismaClient, Prisma } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// Shared filter for non-voided tickets to improve maintainability
+const NON_VOIDED_TICKET_FILTER = { voided_at: null } as const;
+
 export const getDashboardMetrics = async (req: Request, res: Response) => {
   try {
     const now = new Date();
@@ -49,7 +52,7 @@ export const getDashboardMetrics = async (req: Request, res: Response) => {
           event_id: {
             in: upcomingEventIds
           },
-          voided_at: null
+          ...NON_VOIDED_TICKET_FILTER
         }
       });
     }
@@ -85,7 +88,7 @@ export const getDashboardMetrics = async (req: Request, res: Response) => {
           event_id: {
             in: pastEventIds
           },
-          voided_at: null
+          ...NON_VOIDED_TICKET_FILTER
         },
         _count: {
           id: true
@@ -98,7 +101,7 @@ export const getDashboardMetrics = async (req: Request, res: Response) => {
           event_id: {
             in: pastEventIds
           },
-          voided_at: null,
+          ...NON_VOIDED_TICKET_FILTER,
           checked_in_at: {
             not: null
           }
@@ -186,9 +189,7 @@ export const getEvents = async (req: Request, res: Response) => {
         _count: {
           select: {
             tickets: {
-              where: {
-                voided_at: null
-              }
+              where: NON_VOIDED_TICKET_FILTER
             }
           }
         }
@@ -208,7 +209,7 @@ export const getEvents = async (req: Request, res: Response) => {
       by: ['event_id'],
       where: {
         event_id: { in: eventIds },
-        voided_at: null
+        ...NON_VOIDED_TICKET_FILTER
       },
       _count: {
         id: true
@@ -220,7 +221,7 @@ export const getEvents = async (req: Request, res: Response) => {
       by: ['event_id'],
       where: {
         event_id: { in: eventIds },
-        voided_at: null,
+        ...NON_VOIDED_TICKET_FILTER,
         checked_in_at: {
           not: null
         }
@@ -308,7 +309,7 @@ export const getEventDetail = async (req: Request, res: Response) => {
     const issuedTickets = await prisma.ticket.count({
       where: {
         event_id: eventIdNum,
-        voided_at: null,
+        ...NON_VOIDED_TICKET_FILTER,
         checked_in_at: null
       }
     });
@@ -316,7 +317,7 @@ export const getEventDetail = async (req: Request, res: Response) => {
     const checkedInTickets = await prisma.ticket.count({
       where: {
         event_id: eventIdNum,
-        voided_at: null,
+        ...NON_VOIDED_TICKET_FILTER,
         checked_in_at: { not: null }
       }
     });

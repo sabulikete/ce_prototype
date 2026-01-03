@@ -47,23 +47,12 @@ const EventDetail: React.FC = () => {
       setError(null);
       const data = await getEventDetail(parseInt(id));
       setEvent(data);
-    } catch (err: any) {
-      // Enhanced error handling with specific status codes
-      if (err.response) {
-        const status = err.response.status;
-        if (status === 404) {
-          setError('Event not found. This event may have been deleted or does not exist.');
-        } else if (status === 403 || status === 401) {
-          setError('Access denied. You do not have permission to view this event.');
-        } else if (status >= 500) {
-          setError('Server error. Please try again later.');
-        } else {
-          setError(err.message || 'Failed to load event details');
-        }
-      } else if (err.request) {
-        setError('Network error. Please check your connection and try again.');
-      } else {
+    } catch (err: unknown) {
+      // Fetch-based error handling: rely on Error.message when available
+      if (err instanceof Error) {
         setError(err.message || 'Failed to load event details');
+      } else {
+        setError('Failed to load event details');
       }
     } finally {
       setLoading(false);
