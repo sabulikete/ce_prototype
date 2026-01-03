@@ -2,6 +2,11 @@ const express = require('express');
 const router = express.Router();
 const Event = require('../models/Event');
 const { Op } = require('sequelize');
+const { getDashboardMetrics, getEvents: getDashboardEvents } = require('../controllers/eventController.ts');
+
+// Dashboard endpoints
+router.get('/admin/dashboard/metrics', getDashboardMetrics);
+router.get('/admin/dashboard/events', getDashboardEvents);
 
 // GET /api/events - List events (supporting filter)
 router.get('/', async (req, res) => {

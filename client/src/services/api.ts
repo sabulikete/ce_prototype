@@ -242,3 +242,31 @@ export const checkInTicket = async (ticketToken: string, eventId: number) => {
   }
   return response.json();
 };
+
+// Dashboard API methods
+export const getDashboardMetrics = async () => {
+  const response = await fetch(`${API_URL}/events/admin/dashboard/metrics`, {
+    headers: getHeaders(),
+  });
+  if (!response.ok) {
+    throw new Error('Failed to fetch metrics');
+  }
+  return response.json();
+};
+
+export const getDashboardEvents = async (params: { page?: number; limit?: number; status?: string; search?: string }) => {
+  const queryParams = new URLSearchParams();
+  if (params.page) queryParams.append('page', params.page.toString());
+  if (params.limit) queryParams.append('limit', params.limit.toString());
+  if (params.status) queryParams.append('status', params.status);
+  if (params.search) queryParams.append('search', params.search);
+
+  const response = await fetch(`${API_URL}/events/admin/dashboard/events?${queryParams.toString()}`, {
+    headers: getHeaders(),
+  });
+  if (!response.ok) {
+    throw new Error('Failed to fetch events');
+  }
+  return response.json();
+};
+
