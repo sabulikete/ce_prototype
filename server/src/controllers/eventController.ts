@@ -315,9 +315,19 @@ export const getEventDetail = async (req: Request, res: Response) => {
     });
 
     const totalTickets = tickets.length;
-    const issuedTickets = tickets.filter(t => !t.voided_at && !t.checked_in_at).length;
-    const checkedInTickets = tickets.filter(t => !t.voided_at && t.checked_in_at).length;
-    const voidedTickets = tickets.filter(t => t.voided_at).length;
+    const { issuedTickets, checkedInTickets, voidedTickets } = tickets.reduce(
+      (acc, t) => {
+        if (t.voided_at) {
+          acc.voidedTickets += 1;
+        } else if (t.checked_in_at) {
+          acc.checkedInTickets += 1;
+        } else {
+          acc.issuedTickets += 1;
+        }
+        return acc;
+      },
+      { issuedTickets: 0, checkedInTickets: 0, voidedTickets: 0 }
+    );
 
     res.json({
       id: event.content_id,
@@ -445,6 +455,8 @@ export const getEventAttendees = async (req: Request, res: Response) => {
             'or legacy/migrated records with unexpected values. Review the tickets listed here and correct ' +
             'their status fields as needed.'
         });
+        // Provide a visible fallback instead of leaving statusSummary blank in the UI.
+        statusSummary = 'Unknown Status';
       } else {
         statusSummary = statusParts.join(', ');
       }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Search, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { getEventAttendees } from '../../services/api';
 
@@ -34,7 +34,7 @@ const AttendeeTable: React.FC<AttendeeTableProps> = ({ eventId }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const isInitialMount = React.useRef(true);
+  const isInitialMount = useRef(true);
 
   // Debounce search input
   useEffect(() => {

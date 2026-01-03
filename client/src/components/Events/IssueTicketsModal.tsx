@@ -149,6 +149,7 @@ const IssueTicketsModal: React.FC<IssueTicketsModalProps> = ({ isOpen, onClose, 
                 classNamePrefix="react-select"
                 aria-label="Select users for ticket issuance"
                 aria-busy={loading}
+                aria-live="polite"
               />
             </>
           )}

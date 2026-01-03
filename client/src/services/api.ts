@@ -290,7 +290,7 @@ export const getEventAttendees = async (
 ) => {
   const queryParams = new URLSearchParams();
   queryParams.append('page', (params.page || 1).toString());
-  // Note: limit is fixed at 20 on the backend per API contract
+  // Note: limit parameter omitted; backend enforces a fixed value of 20 per API contract
   if (params.search) queryParams.append('search', params.search);
 
   const response = await fetch(

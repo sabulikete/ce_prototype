@@ -31,7 +31,7 @@ interface LocationState {
 }
 
 const EventDetail: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
   const [event, setEvent] = useState<EventDetailData | null>(null);
@@ -41,15 +41,15 @@ const EventDetail: React.FC = () => {
 
   useEffect(() => {
     loadEventDetail();
-  }, [id]);
+  }, [eventId]);
 
   const loadEventDetail = async () => {
-    if (!id) return;
+    if (!eventId) return;
     
     try {
       setLoading(true);
       setError(null);
-      const data = await getEventDetail(parseInt(id));
+      const data = await getEventDetail(parseInt(eventId));
       setEvent(data);
     } catch (err: unknown) {
       // Handle both Error objects from api.ts and unexpected error types
