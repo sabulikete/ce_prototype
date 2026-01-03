@@ -68,8 +68,9 @@ const IssueTicketsModal: React.FC<IssueTicketsModalProps> = ({ isOpen, onClose, 
       showToast('Tickets issued successfully', 'success');
       setSelectedUsers([]);
       onClose();
-    } catch (err: any) {
-      showToast(err.message || 'Failed to issue tickets', 'error');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to issue tickets';
+      showToast(errorMessage, 'error');
     } finally {
       setSubmitting(false);
     }

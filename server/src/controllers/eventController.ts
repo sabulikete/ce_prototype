@@ -301,33 +301,20 @@ export const getEventDetail = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Event not found' });
     }
 
-    // Aggregate ticket statistics
-    const totalTickets = await prisma.ticket.count({
-      where: { event_id: eventIdNum }
-    });
-
-    const issuedTickets = await prisma.ticket.count({
-      where: {
-        event_id: eventIdNum,
-        ...ACTIVE_TICKET_CONDITION,
-        checked_in_at: null
+    // Aggregate ticket statistics in a single query for efficiency
+    const tickets = await prisma.ticket.findMany({
+      where: { event_id: eventIdNum },
+      select: {
+        id: true,
+        voided_at: true,
+        checked_in_at: true
       }
     });
 
-    const checkedInTickets = await prisma.ticket.count({
-      where: {
-        event_id: eventIdNum,
-        ...ACTIVE_TICKET_CONDITION,
-        checked_in_at: { not: null }
-      }
-    });
-
-    const voidedTickets = await prisma.ticket.count({
-      where: {
-        event_id: eventIdNum,
-        voided_at: { not: null }
-      }
-    });
+    const totalTickets = tickets.length;
+    const issuedTickets = tickets.filter(t => !t.voided_at && !t.checked_in_at).length;
+    const checkedInTickets = tickets.filter(t => !t.voided_at && t.checked_in_at).length;
+    const voidedTickets = tickets.filter(t => t.voided_at).length;
 
     res.json({
       id: event.content_id,
@@ -366,6 +353,8 @@ export const getEventAttendees = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid parameters' });
     }
 
+    // NOTE: The current API contract/spec requires a fixed page size of 20 items.
+    // We intentionally enforce `limitNum === 20` here to guarantee that behavior.
     if (pageNum < 1 || limitNum !== 20) {
       return res.status(400).json({ error: 'Invalid pagination parameters (page >= 1, limit = 20)' });
     }
@@ -443,7 +432,8 @@ export const getEventAttendees = async (req: Request, res: Response) => {
         // Log for investigation instead of showing a misleading "No tickets" message.
         console.error('Inconsistent ticket status counts for user', user.id, {
           ticketCount: tickets.length,
-          tickets
+          tickets,
+          note: 'No issued, checked-in, or voided tickets were counted. This may indicate that all tickets have null status-related fields (e.g., checked_in_at and voided_at) or an unexpected categorization change. Please investigate and perform data cleanup if necessary.'
         });
       } else {
         statusSummary = statusParts.join(', ');

@@ -44,10 +44,10 @@ const AttendeeTable: React.FC<AttendeeTableProps> = ({ eventId }) => {
     return () => clearTimeout(timer);
   }, [search]);
 
-  // Reset to page 1 whenever search changes
+  // Reset to page 1 whenever debounced search changes (when API call happens)
   useEffect(() => {
     setCurrentPage(1);
-  }, [search]);
+  }, [debouncedSearch]);
 
   // Fetch attendees when eventId, page, or search changes
   useEffect(() => {
