@@ -15,6 +15,19 @@ interface Event {
   };
 }
 
+interface EventData {
+  id: string;
+  title: string;
+  startDate: string;
+  endDate: string;
+  location: string;
+  status: string;
+  ticketStats: {
+    issued: number;
+    checkedIn: number;
+  };
+}
+
 interface TicketData {
   id: number;
   code_hash: string;
@@ -38,7 +51,7 @@ const AdminEvents: React.FC = () => {
   
   // Dashboard state
   const [metrics, setMetrics] = useState({ totalUpcoming: 0, totalTicketsIssued: 0, avgCheckInRate: 0 });
-  const [dashboardEvents, setDashboardEvents] = useState<any[]>([]);
+  const [dashboardEvents, setDashboardEvents] = useState<EventData[]>([]);
   const [dashboardPagination, setDashboardPagination] = useState({ total: 0, page: 1, limit: 10, totalPages: 0 });
   const [currentPage, setCurrentPage] = useState(1);
   const [filterStatus, setFilterStatus] = useState<'upcoming' | 'past'>('upcoming');

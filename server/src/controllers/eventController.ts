@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -12,6 +12,11 @@ export const getDashboardMetrics = async (req: Request, res: Response) => {
       where: {
         start_at: {
           gte: now
+        },
+        content: {
+          is: {
+            status: 'PUBLISHED'
+          }
         }
       }
     });
@@ -21,6 +26,11 @@ export const getDashboardMetrics = async (req: Request, res: Response) => {
       where: {
         start_at: {
           gte: now
+        },
+        content: {
+          is: {
+            status: 'PUBLISHED'
+          }
         }
       },
       select: {
@@ -49,6 +59,11 @@ export const getDashboardMetrics = async (req: Request, res: Response) => {
       where: {
         end_at: {
           lt: now
+        },
+        content: {
+          is: {
+            status: 'PUBLISHED'
+          }
         }
       },
       orderBy: {
@@ -131,7 +146,13 @@ export const getEvents = async (req: Request, res: Response) => {
     const now = new Date();
     
     // Build the where clause
-    const whereClause: any = {};
+    const whereClause: Prisma.EventWhereInput = {
+      content: {
+        is: {
+          status: 'PUBLISHED'
+        }
+      }
+    };
     
     // Filter by status (upcoming or past)
     if (status === 'upcoming') {
@@ -144,6 +165,7 @@ export const getEvents = async (req: Request, res: Response) => {
     if (search && (search as string).trim()) {
       whereClause.content = {
         is: {
+          status: 'PUBLISHED',
           title: {
             contains: (search as string).trim()
           }
