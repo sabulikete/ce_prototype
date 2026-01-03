@@ -9,6 +9,7 @@ import AdminBilling from './pages/Admin/AdminBilling';
 import AdminEvents from './pages/Admin/AdminEvents';
 import AdminUsers from './pages/Admin/AdminUsers';
 import AdminPosts from './pages/Admin/AdminPosts';
+import EventDetail from './pages/Admin/EventDetail';
 import Scanner from './pages/Scanner';
 import LandingPage from './pages/LandingPage';
 import AcceptInvite from './pages/AcceptInvite';
@@ -50,6 +51,7 @@ const AppRoutes = () => {
 
         <Route path="admin/billing" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminBilling /></ProtectedRoute>} />
         <Route path="admin/events" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminEvents /></ProtectedRoute>} />
+        <Route path="admin/events/:id" element={<ProtectedRoute allowedRoles={['ADMIN']}><EventDetail /></ProtectedRoute>} />
         <Route path="admin/users" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminUsers /></ProtectedRoute>} />
         <Route path="admin/posts" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminPosts /></ProtectedRoute>} />
         <Route path="scanner" element={<ProtectedRoute allowedRoles={['STAFF', 'ADMIN']}><Scanner /></ProtectedRoute>} />

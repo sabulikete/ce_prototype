@@ -9,7 +9,7 @@
 ## Phase 1: Setup
 *Goal: Initialize project structure, add database indexes, and define interfaces.*
 
-- [ ] T001 Add composite database index on Ticket(eventId, userId, status) in server/prisma/schema.prisma
+- [X] T001 Add composite database index on Ticket(eventId, userId, status) in server/prisma/schema.prisma
   - **Files**: `server/prisma/schema.prisma`
   - **Goal**: Optimize attendee aggregation queries for performance
   - **Acceptance**: 
@@ -18,7 +18,7 @@
     - Verify index exists in database
   - **Dependencies**: None
 
-- [ ] T002 Install react-select dependency for multi-select dropdown
+- [X] T002 Install react-select dependency for multi-select dropdown
   - **Files**: `client/package.json`
   - **Goal**: Add searchable multi-select component library
   - **Acceptance**:
@@ -27,7 +27,7 @@
     - No build errors when starting dev server
   - **Dependencies**: None
 
-- [ ] T003 Create EventDetail page component skeleton in client/src/pages/Admin/EventDetail.tsx
+- [X] T003 Create EventDetail page component skeleton in client/src/pages/Admin/EventDetail.tsx
   - **Files**: `client/src/pages/Admin/EventDetail.tsx`
   - **Goal**: Set up basic page structure with routing
   - **Acceptance**:
@@ -37,7 +37,7 @@
     - Exports default EventDetail component
   - **Dependencies**: None
 
-- [ ] T004 Add route for event detail page in client/src/App.jsx
+- [X] T004 Add route for event detail page in client/src/App.jsx
   - **Files**: `client/src/App.jsx`
   - **Goal**: Register /admin/events/:id route
   - **Acceptance**:
@@ -52,7 +52,7 @@
 ## Phase 2: Foundational Backend
 *Goal: Implement core backend endpoints and aggregation logic.*
 
-- [ ] T005 Implement getEventDetail controller function in server/src/controllers/eventController.ts
+- [X] T005 Implement getEventDetail controller function in server/src/controllers/eventController.ts
   - **Files**: `server/src/controllers/eventController.ts`
   - **Goal**: Fetch event data with ticket statistics
   - **Acceptance**:
@@ -64,7 +64,7 @@
     - Returns 500 on database errors
   - **Dependencies**: T001
 
-- [ ] T006 Implement getEventAttendees controller function in server/src/controllers/eventController.ts
+- [X] T006 Implement getEventAttendees controller function in server/src/controllers/eventController.ts
   - **Files**: `server/src/controllers/eventController.ts`
   - **Goal**: Fetch paginated attendee list with ticket aggregates
   - **Acceptance**:
@@ -78,7 +78,7 @@
     - Returns 404 if event not found
   - **Dependencies**: T001, T005
 
-- [ ] T007 Implement getSelectableUsers controller function in server/src/controllers/userController.ts
+- [X] T007 Implement getSelectableUsers controller function in server/src/controllers/userController.ts
   - **Files**: `server/src/controllers/userController.ts`
   - **Goal**: Fetch users available for ticket issuance
   - **Acceptance**:
@@ -89,7 +89,7 @@
     - Sorts by name (unit_id) or email alphabetically
   - **Dependencies**: None
 
-- [ ] T008 Register GET /api/events/:eventId route in server/src/routes/eventRoutes.ts
+- [X] T008 Register GET /api/events/:eventId route in server/src/routes/eventRoutes.ts
   - **Files**: `server/src/routes/eventRoutes.ts`
   - **Goal**: Connect event detail endpoint
   - **Acceptance**:
@@ -99,7 +99,7 @@
     - Returns 401 without auth, 403 for non-admin
   - **Dependencies**: T005
 
-- [ ] T009 Register GET /api/events/:eventId/attendees route in server/src/routes/eventRoutes.ts
+- [X] T009 Register GET /api/events/:eventId/attendees route in server/src/routes/eventRoutes.ts
   - **Files**: `server/src/routes/eventRoutes.ts`
   - **Goal**: Connect attendee list endpoint
   - **Acceptance**:
@@ -109,7 +109,7 @@
     - Returns paginated attendee data
   - **Dependencies**: T006
 
-- [ ] T010 Register GET /api/users/selectable route in server/src/routes/userRoutes.ts
+- [X] T010 Register GET /api/users/selectable route in server/src/routes/userRoutes.ts
   - **Files**: `server/src/routes/userRoutes.ts`
   - **Goal**: Connect user selection endpoint
   - **Acceptance**:
@@ -124,7 +124,7 @@
 ## Phase 3: User Story 1 - View Event Details (P1)
 *Goal: Admin can click event from dashboard and view detailed information with ticket statistics.*
 
-- [ ] T011 [P] [US1] Create EventInfo component in client/src/components/Events/EventInfo.tsx
+- [X] T011 [P] [US1] Create EventInfo component in client/src/components/Events/EventInfo.tsx
   - **Files**: `client/src/components/Events/EventInfo.tsx`
   - **Goal**: Display event details section
   - **Acceptance**:
@@ -136,7 +136,7 @@
     - Handles null/optional fields gracefully
   - **Dependencies**: None
 
-- [ ] T012 [P] [US1] Create TicketStats component in client/src/components/Events/TicketStats.tsx
+- [X] T012 [P] [US1] Create TicketStats component in client/src/components/Events/TicketStats.tsx
   - **Files**: `client/src/components/Events/TicketStats.tsx`
   - **Goal**: Display mini dashboard with ticket statistics
   - **Acceptance**:
@@ -147,7 +147,7 @@
     - Uses icons from lucide-react
   - **Dependencies**: None
 
-- [ ] T013 [US1] Create AttendeeTable component skeleton in client/src/components/Events/AttendeeTable.tsx
+- [X] T013 [US1] Create AttendeeTable component skeleton in client/src/components/Events/AttendeeTable.tsx
   - **Files**: `client/src/components/Events/AttendeeTable.tsx`
   - **Goal**: Set up attendee table structure with pagination
   - **Acceptance**:
@@ -159,7 +159,7 @@
     - Pagination controls (not yet functional)
   - **Dependencies**: None
 
-- [ ] T014 [US1] Add API methods for event detail endpoints in client/src/services/api.ts
+- [X] T014 [US1] Add API methods for event detail endpoints in client/src/services/api.ts
   - **Files**: `client/src/services/api.ts`
   - **Goal**: Create API client functions
   - **Acceptance**:
@@ -170,7 +170,7 @@
     - Proper error handling with try/catch
   - **Dependencies**: T008, T009, T010
 
-- [ ] T015 [US1] Implement EventDetail page with data fetching in client/src/pages/Admin/EventDetail.tsx
+- [X] T015 [US1] Implement EventDetail page with data fetching in client/src/pages/Admin/EventDetail.tsx
   - **Files**: `client/src/pages/Admin/EventDetail.tsx`
   - **Goal**: Connect backend data to page components
   - **Acceptance**:
@@ -183,7 +183,7 @@
     - Back button to return to dashboard
   - **Dependencies**: T005, T008, T011, T012, T013, T014
 
-- [ ] T016 [US1] Make event list clickable in client/src/pages/Admin/AdminEvents.tsx
+- [X] T016 [US1] Make event list clickable in client/src/pages/Admin/AdminEvents.tsx
   - **Files**: `client/src/pages/Admin/AdminEvents.tsx`, `client/src/components/Events/EventList.tsx`
   - **Goal**: Add click handler to navigate to detail page
   - **Acceptance**:
@@ -200,7 +200,7 @@
 ## Phase 4: User Story 1 - Attendee Table Features
 *Goal: Implement search and pagination for attendee table.*
 
-- [ ] T017 [US1] Implement attendee data fetching in AttendeeTable component
+- [X] T017 [US1] Implement attendee data fetching in AttendeeTable component
   - **Files**: `client/src/components/Events/AttendeeTable.tsx`
   - **Goal**: Load attendee data from API
   - **Acceptance**:
@@ -212,7 +212,7 @@
     - Shows error if fetch fails
   - **Dependencies**: T013, T014
 
-- [ ] T018 [US1] Implement search functionality in AttendeeTable component
+- [X] T018 [US1] Implement search functionality in AttendeeTable component
   - **Files**: `client/src/components/Events/AttendeeTable.tsx`
   - **Goal**: Filter attendees by name/email
   - **Acceptance**:
@@ -224,7 +224,7 @@
     - Clear button clears search
   - **Dependencies**: T017
 
-- [ ] T019 [US1] Implement pagination controls in AttendeeTable component
+- [X] T019 [US1] Implement pagination controls in AttendeeTable component
   - **Files**: `client/src/components/Events/AttendeeTable.tsx`
   - **Goal**: Navigate through pages of attendees
   - **Acceptance**:
@@ -240,7 +240,7 @@
 ## Phase 5: User Story 2 - Issue Tickets from Detail Page (P2)
 *Goal: Admin can issue tickets using searchable multi-select dropdown.*
 
-- [ ] T020 [US2] Create IssueTicketsModal component with react-select in client/src/components/Events/IssueTicketsModal.tsx
+- [X] T020 [US2] Create IssueTicketsModal component with react-select in client/src/components/Events/IssueTicketsModal.tsx
   - **Files**: `client/src/components/Events/IssueTicketsModal.tsx`
   - **Goal**: Modal for issuing tickets with user selection
   - **Acceptance**:
@@ -254,7 +254,7 @@
     - Cancel button closes modal
   - **Dependencies**: T002, T014
 
-- [ ] T021 [US2] Implement user loading in IssueTicketsModal
+- [X] T021 [US2] Implement user loading in IssueTicketsModal
   - **Files**: `client/src/components/Events/IssueTicketsModal.tsx`
   - **Goal**: Fetch selectable users for dropdown
   - **Acceptance**:
@@ -266,7 +266,7 @@
     - Supports client-side filtering via react-select search
   - **Dependencies**: T020, T014
 
-- [ ] T022 [US2] Add "Issue Tickets" button to EventDetail page
+- [X] T022 [US2] Add "Issue Tickets" button to EventDetail page
   - **Files**: `client/src/pages/Admin/EventDetail.tsx`
   - **Goal**: Trigger ticket issuance modal
   - **Acceptance**:
@@ -277,7 +277,7 @@
     - Button uses primary/accent styling
   - **Dependencies**: T020
 
-- [ ] T023 [US2] Implement ticket issuance submission in IssueTicketsModal
+- [X] T023 [US2] Implement ticket issuance submission in IssueTicketsModal
   - **Files**: `client/src/components/Events/IssueTicketsModal.tsx`
   - **Goal**: Submit selected users for ticket creation
   - **Acceptance**:
@@ -295,7 +295,7 @@
 ## Phase 6: User Story 3 - Navigation Preservation (P3)
 *Goal: Ensure dashboard state preserved when navigating back from detail page.*
 
-- [ ] T024 [US3] Implement back navigation in EventDetail page
+- [X] T024 [US3] Implement back navigation in EventDetail page
   - **Files**: `client/src/pages/Admin/EventDetail.tsx`
   - **Goal**: Return to dashboard with preserved state
   - **Acceptance**:
@@ -307,7 +307,7 @@
     - Uses browser-standard back icon
   - **Dependencies**: T015
 
-- [ ] T025 [US3] Verify dashboard refresh on return navigation
+- [X] T025 [US3] Verify dashboard refresh on return navigation
   - **Files**: `client/src/pages/Admin/AdminEvents.tsx`
   - **Goal**: Ensure data refreshes while preserving filters
   - **Acceptance**:
@@ -323,7 +323,7 @@
 ## Phase 7: Polish & Cross-Cutting
 *Goal: Ensure good UX with loading states, error handling, and edge cases.*
 
-- [ ] T026 Add loading skeleton to EventDetail page
+- [X] T026 Add loading skeleton to EventDetail page
   - **Files**: `client/src/pages/Admin/EventDetail.tsx`
   - **Goal**: Show loading state during data fetch
   - **Acceptance**:
@@ -334,7 +334,7 @@
     - Loading state shows immediately on mount
   - **Dependencies**: T015
 
-- [ ] T027 Add error handling to EventDetail page
+- [X] T027 Add error handling to EventDetail page
   - **Files**: `client/src/pages/Admin/EventDetail.tsx`
   - **Goal**: Handle API errors gracefully
   - **Acceptance**:
@@ -345,7 +345,7 @@
     - Error displayed in user-friendly format
   - **Dependencies**: T015
 
-- [ ] T028 Add loading and error states to AttendeeTable
+- [X] T028 Add loading and error states to AttendeeTable
   - **Files**: `client/src/components/Events/AttendeeTable.tsx`
   - **Goal**: Handle attendee fetch states
   - **Acceptance**:
@@ -356,7 +356,7 @@
     - Search empty state: "No attendees found matching '{query}'"
   - **Dependencies**: T017
 
-- [ ] T029 Add loading and error states to IssueTicketsModal
+- [X] T029 Add loading and error states to IssueTicketsModal
   - **Files**: `client/src/components/Events/IssueTicketsModal.tsx`
   - **Goal**: Handle user loading and submission errors
   - **Acceptance**:
@@ -368,7 +368,7 @@
     - Modal remains open on error, closes on success
   - **Dependencies**: T023
 
-- [ ] T030 Add responsive styling to EventDetail page
+- [X] T030 Add responsive styling to EventDetail page
   - **Files**: `client/src/pages/Admin/EventDetail.tsx`, `client/src/components/Events/*.tsx`
   - **Goal**: Ensure mobile-responsive layout
   - **Acceptance**:

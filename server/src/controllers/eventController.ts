@@ -270,3 +270,202 @@ export const getEvents = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
+export const getEventDetail = async (req: Request, res: Response) => {
+  try {
+    const { eventId } = req.params;
+    const eventIdNum = parseInt(eventId);
+
+    if (isNaN(eventIdNum)) {
+      return res.status(400).json({ error: 'Invalid event ID' });
+    }
+
+    // Fetch event with content
+    const event = await prisma.event.findUnique({
+      where: { content_id: eventIdNum },
+      include: {
+        content: {
+          select: {
+            id: true,
+            title: true,
+            body: true,
+            status: true,
+            published_at: true
+          }
+        }
+      }
+    });
+
+    if (!event) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+
+    // Aggregate ticket statistics
+    const totalTickets = await prisma.ticket.count({
+      where: { event_id: eventIdNum }
+    });
+
+    const issuedTickets = await prisma.ticket.count({
+      where: {
+        event_id: eventIdNum,
+        voided_at: null,
+        checked_in_at: null
+      }
+    });
+
+    const checkedInTickets = await prisma.ticket.count({
+      where: {
+        event_id: eventIdNum,
+        voided_at: null,
+        checked_in_at: { not: null }
+      }
+    });
+
+    const voidedTickets = await prisma.ticket.count({
+      where: {
+        event_id: eventIdNum,
+        voided_at: { not: null }
+      }
+    });
+
+    res.json({
+      id: event.content_id,
+      title: event.content.title,
+      description: event.content.body,
+      startDate: event.start_at.toISOString(),
+      endDate: event.end_at.toISOString(),
+      location: event.location,
+      status: event.content.status,
+      publishedAt: event.content.published_at?.toISOString() || null,
+      ticketStats: {
+        total: totalTickets,
+        byStatus: {
+          issued: issuedTickets,
+          checkedIn: checkedInTickets,
+          voided: voidedTickets
+        }
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const getEventAttendees = async (req: Request, res: Response) => {
+  try {
+    const { eventId } = req.params;
+    const { page = '1', limit = '20', search = '' } = req.query;
+    
+    const eventIdNum = parseInt(eventId);
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+
+    if (isNaN(eventIdNum) || isNaN(pageNum) || isNaN(limitNum)) {
+      return res.status(400).json({ error: 'Invalid parameters' });
+    }
+
+    if (pageNum < 1 || limitNum !== 20) {
+      return res.status(400).json({ error: 'Invalid pagination parameters (page >= 1, limit = 20)' });
+    }
+
+    // Verify event exists
+    const event = await prisma.event.findUnique({
+      where: { content_id: eventIdNum }
+    });
+
+    if (!event) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+
+    // Build user filter for search
+    const userWhere: any = {};
+    if (search && (search as string).trim()) {
+      const searchTerm = (search as string).trim();
+      userWhere.OR = [
+        { email: { contains: searchTerm } },
+        { unit_id: { contains: searchTerm } }
+      ];
+    }
+
+    // Get all tickets for this event with user data
+    const tickets = await prisma.ticket.findMany({
+      where: {
+        event_id: eventIdNum,
+        user: userWhere
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            unit_id: true
+          }
+        }
+      }
+    });
+
+    // Group tickets by user and compute aggregates
+    const userTicketMap = new Map<number, {
+      user: { id: number; email: string; unit_id: string | null };
+      tickets: Array<{ id: number; checked_in_at: Date | null; voided_at: Date | null }>;
+    }>();
+
+    tickets.forEach(ticket => {
+      if (!userTicketMap.has(ticket.user_id)) {
+        userTicketMap.set(ticket.user_id, {
+          user: ticket.user,
+          tickets: []
+        });
+      }
+      userTicketMap.get(ticket.user_id)!.tickets.push({
+        id: ticket.id,
+        checked_in_at: ticket.checked_in_at,
+        voided_at: ticket.voided_at
+      });
+    });
+
+    // Convert to array and compute status summaries
+    const attendeeList = Array.from(userTicketMap.values()).map(({ user, tickets }) => {
+      const issued = tickets.filter(t => !t.voided_at && !t.checked_in_at).length;
+      const checkedIn = tickets.filter(t => !t.voided_at && t.checked_in_at).length;
+      const voided = tickets.filter(t => t.voided_at).length;
+
+      const statusParts: string[] = [];
+      if (issued > 0) statusParts.push(`${issued} Issued`);
+      if (checkedIn > 0) statusParts.push(`${checkedIn} Checked In`);
+      if (voided > 0) statusParts.push(`${voided} Voided`);
+
+      return {
+        userId: user.id,
+        name: user.unit_id || user.email,
+        email: user.email,
+        ticketCount: tickets.length,
+        statusSummary: statusParts.join(', ') || 'No tickets'
+      };
+    });
+
+    // Sort by name
+    attendeeList.sort((a, b) => a.name.localeCompare(b.name));
+
+    // Apply pagination
+    const total = attendeeList.length;
+    const totalPages = Math.ceil(total / limitNum);
+    const offset = (pageNum - 1) * limitNum;
+    const paginatedAttendees = attendeeList.slice(offset, offset + limitNum);
+
+    res.json({
+      attendees: paginatedAttendees,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+

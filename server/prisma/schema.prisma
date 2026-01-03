@@ -97,6 +97,8 @@ model Ticket {
   checked_in_at DateTime?
   voided_at     DateTime?
   created_at    DateTime  @default(now())
+  
+  @@index([event_id, user_id, checked_in_at, voided_at])
 }
 
 model BillingStatement {

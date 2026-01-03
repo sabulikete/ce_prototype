@@ -59,3 +59,53 @@ export const deleteUser = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
+export const getSelectableUsers = async (req: Request, res: Response) => {
+  try {
+    const { search = '' } = req.query;
+
+    // Build where clause for ACTIVE and INVITED users
+    const whereClause: any = {
+      status: {
+        in: ['ACTIVE', 'INVITED']
+      }
+    };
+
+    // Add search filter if provided
+    if (search && (search as string).trim()) {
+      const searchTerm = (search as string).trim();
+      whereClause.OR = [
+        { email: { contains: searchTerm } },
+        { unit_id: { contains: searchTerm } }
+      ];
+    }
+
+    const users = await prisma.user.findMany({
+      where: whereClause,
+      select: {
+        id: true,
+        email: true,
+        unit_id: true,
+        status: true
+      },
+      orderBy: [
+        { unit_id: 'asc' },
+        { email: 'asc' }
+      ]
+    });
+
+    // Format users for response
+    const formattedUsers = users.map(user => ({
+      id: user.id,
+      name: user.unit_id || user.email,
+      email: user.email,
+      status: user.status
+    }));
+
+    res.json({ users: formattedUsers });
+  } catch (error) {
+    console.error('Failed to get selectable users', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
