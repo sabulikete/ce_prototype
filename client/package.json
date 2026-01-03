@@ -12,6 +12,7 @@
   "dependencies": {
     "date-fns": "^4.1.0",
     "framer-motion": "^12.23.26",
+    "html5-qrcode": "^2.3.8",
     "lucide-react": "^0.562.0",
     "qrcode": "^1.5.4",
     "qrcode.react": "^4.2.0",

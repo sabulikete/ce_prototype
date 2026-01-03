@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ScanLine, CheckCircle, XCircle, Camera, Search } from 'lucide-react';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 import { fetchContent, checkInTicket } from '../services/api';
 import './Scanner.css';
 
@@ -10,10 +11,89 @@ const Scanner: React.FC = () => {
   const [scanResult, setScanResult] = useState<any>(null);
   const [scanning, setScanning] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
+  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+  const selectedEventIdRef = useRef(selectedEventId);
+
+  useEffect(() => {
+    selectedEventIdRef.current = selectedEventId;
+  }, [selectedEventId]);
 
   useEffect(() => {
     loadEvents();
+    
+    return () => {
+      if (scannerRef.current) {
+        scannerRef.current.clear().catch(console.error);
+      }
+    };
   }, []);
+
+  useEffect(() => {
+    if (cameraActive) {
+      // Small timeout to ensure DOM is ready
+      const timer = setTimeout(() => {
+        if (!scannerRef.current) {
+          const scanner = new Html5QrcodeScanner(
+            "reader",
+            { 
+              fps: 10, 
+              qrbox: { width: 250, height: 250 },
+              aspectRatio: 1.0
+            },
+            /* verbose= */ false
+          );
+          
+          scanner.render(onScanSuccess, onScanFailure);
+          scannerRef.current = scanner;
+        }
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    } else {
+      if (scannerRef.current) {
+        scannerRef.current.clear().catch(console.error);
+        scannerRef.current = null;
+      }
+    }
+  }, [cameraActive]);
+
+  const onScanSuccess = async (decodedText: string, decodedResult: any) => {
+    if (scanning) return;
+    
+    // Prevent multiple scans of the same code in rapid succession if needed
+    // For now, we just process it.
+    
+    handleTicketCheckIn(decodedText);
+  };
+
+  const onScanFailure = (error: any) => {
+    // console.warn(`Code scan error = ${error}`);
+  };
+
+  const handleTicketCheckIn = async (token: string) => {
+    if (!selectedEventIdRef.current) return;
+    
+    setScanning(true);
+    setScanResult(null);
+
+    try {
+      const result = await checkInTicket(token, parseInt(selectedEventIdRef.current));
+      setScanResult({ success: true, memberName: result.memberName });
+      
+      // If using camera, we might want to pause or show success briefly
+      if (cameraActive && scannerRef.current) {
+         scannerRef.current.pause();
+         setTimeout(() => {
+             if (scannerRef.current) scannerRef.current.resume();
+         }, 2000);
+      }
+      
+    } catch (error: any) {
+      setScanResult({ success: false, message: error.message });
+    } finally {
+      setScanning(false);
+    }
+  };
 
   const loadEvents = async () => {
     try {
@@ -31,24 +111,13 @@ const Scanner: React.FC = () => {
   const handleScan = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedEventId || !scanInput) return;
-
-    setScanning(true);
-    setScanResult(null);
-
-    try {
-      const result = await checkInTicket(scanInput, parseInt(selectedEventId));
-      setScanResult({ success: true, memberName: result.memberName });
-      setScanInput(''); // Clear input on success
-    } catch (error: any) {
-      setScanResult({ success: false, message: error.message });
-    } finally {
-      setScanning(false);
-    }
+    handleTicketCheckIn(scanInput);
+    setScanInput('');
   };
 
   const toggleCamera = () => {
     setCameraActive(!cameraActive);
-    // In a real app, this would initialize the QR scanner library
+    setScanResult(null);
   };
 
   return (
@@ -77,13 +146,7 @@ const Scanner: React.FC = () => {
         <div className="scan-area">
           {cameraActive ? (
             <div className="camera-view">
-              <div className="camera-placeholder">
-                <Camera size={48} />
-                <p>Camera Active (Simulation)</p>
-                <button className="btn-secondary" onClick={() => setScanInput('TICKET:1:DEMO')}>
-                  Simulate Scan
-                </button>
-              </div>
+              <div id="reader" style={{ width: '100%' }}></div>
             </div>
           ) : (
             <div className="manual-input">

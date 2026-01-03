@@ -11,7 +11,8 @@ import {
     User,
     Megaphone,
     Menu,
-    X
+    X,
+    ScanLine
 } from 'lucide-react';
 import './Sidebar.css';
 
@@ -82,6 +83,10 @@ const Sidebar = () => {
                     {user.role === 'ADMIN' && (
                         <>
                             <div className="nav-section-label">ADMINISTRATION</div>
+                            <NavLink to="/scanner" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} onClick={closeMobile}>
+                                <ScanLine size={20} />
+                                <span>Ticket Scanner</span>
+                            </NavLink>
                             <NavLink to="/admin/users" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} onClick={closeMobile}>
                                 <User size={20} />
                                 <span>User Management</span>
@@ -97,6 +102,16 @@ const Sidebar = () => {
                             <NavLink to="/admin/events" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} onClick={closeMobile}>
                                 <QrCode size={20} />
                                 <span>Event Manager</span>
+                            </NavLink>
+                        </>
+                    )}
+
+                    {user.role === 'STAFF' && (
+                        <>
+                            <div className="nav-section-label">STAFF TOOLS</div>
+                            <NavLink to="/scanner" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} onClick={closeMobile}>
+                                <ScanLine size={20} />
+                                <span>Ticket Scanner</span>
                             </NavLink>
                         </>
                     )}
