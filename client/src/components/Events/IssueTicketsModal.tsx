@@ -147,8 +147,26 @@ const IssueTicketsModal: React.FC<IssueTicketsModalProps> = ({ isOpen, onClose, 
                 classNamePrefix="react-select"
                 aria-label="Select users for ticket issuance"
                 aria-busy={loading}
-                aria-live="polite"
               />
+              <span
+                role="status"
+                aria-live="polite"
+                style={{
+                  position: 'absolute',
+                  width: 1,
+                  height: 1,
+                  padding: 0,
+                  margin: -1,
+                  overflow: 'hidden',
+                  clip: 'rect(0, 0, 0, 0)',
+                  whiteSpace: 'nowrap',
+                  border: 0,
+                }}
+              >
+                {selectedUsers.length === 0
+                  ? 'No users selected.'
+                  : `${selectedUsers.length} user${selectedUsers.length > 1 ? 's' : ''} selected.`}
+              </span>
             </>
           )}
         </div>
