@@ -138,8 +138,10 @@ export const getEvents = async (req: Request, res: Response) => {
     // Add search filter if provided
     if (search && (search as string).trim()) {
       whereClause.content = {
-        title: {
-          contains: (search as string).trim()
+        is: {
+          title: {
+            contains: (search as string).trim()
+          }
         }
       };
     }
@@ -177,30 +179,42 @@ export const getEvents = async (req: Request, res: Response) => {
       take: limitNum
     });
 
-    // Get ticket stats for each event
+    // Get ticket stats for each event using aggregation to avoid N+1 queries
     const eventIds = events.map(e => e.content_id);
-    const ticketStats = await Promise.all(
-      eventIds.map(async (eventId) => {
-        const issued = await prisma.ticket.count({
-          where: {
-            event_id: eventId,
-            voided_at: null
-          }
-        });
-
-        const checkedIn = await prisma.ticket.count({
-          where: {
-            event_id: eventId,
-            voided_at: null,
-            checked_in_at: {
-              not: null
-            }
-          }
-        });
-
-        return { eventId, issued, checkedIn };
-      })
-    );
+    
+    // Get issued ticket counts
+    const issuedStats = await prisma.ticket.groupBy({
+      by: ['event_id'],
+      where: {
+        event_id: { in: eventIds },
+        voided_at: null
+      },
+      _count: {
+        id: true
+      }
+    });
+    
+    // Get checked-in ticket counts
+    const checkedInStats = await prisma.ticket.groupBy({
+      by: ['event_id'],
+      where: {
+        event_id: { in: eventIds },
+        voided_at: null,
+        checked_in_at: {
+          not: null
+        }
+      },
+      _count: {
+        id: true
+      }
+    });
+    
+    // Combine stats
+    const ticketStats = eventIds.map(eventId => {
+      const issued = issuedStats.find(s => s.event_id === eventId)?._count.id || 0;
+      const checkedIn = checkedInStats.find(s => s.event_id === eventId)?._count.id || 0;
+      return { eventId, issued, checkedIn };
+    });
 
     // Build response data
     const data = events.map((event) => {
