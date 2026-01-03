@@ -19,6 +19,8 @@ interface EventListProps {
 }
 
 const EventList: React.FC<EventListProps> = ({ events }) => {
+  const now = new Date();
+  
   return (
     <div className="event-list">
       <table className="admin-table">
@@ -54,7 +56,7 @@ const EventList: React.FC<EventListProps> = ({ events }) => {
               </td>
               <td>
                 {/* Smart Display: Show "X issued" for upcoming, "X/Y checked in" for past */}
-                {new Date(event.startDate) > new Date() ? (
+                {new Date(event.startDate) > now ? (
                   <span className="ticket-count">{event.ticketStats.issued} issued</span>
                 ) : (
                   <span className="ticket-count">

@@ -30,14 +30,19 @@ export const getDashboardMetrics = async (req: Request, res: Response) => {
 
     const upcomingEventIds = upcomingEvents.map(e => e.content_id);
     
-    const totalTicketsIssued = await prisma.ticket.count({
-      where: {
-        event_id: {
-          in: upcomingEventIds
-        },
-        voided_at: null
-      }
-    });
+    let totalTicketsIssued: number;
+    if (upcomingEventIds.length === 0) {
+      totalTicketsIssued = 0;
+    } else {
+      totalTicketsIssued = await prisma.ticket.count({
+        where: {
+          event_id: {
+            in: upcomingEventIds
+          },
+          voided_at: null
+        }
+      });
+    }
 
     // Calculate average check-in rate for last 3 past events
     const pastEvents = await prisma.event.findMany({

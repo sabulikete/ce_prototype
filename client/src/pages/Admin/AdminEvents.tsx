@@ -40,6 +40,7 @@ const AdminEvents: React.FC = () => {
   const [metrics, setMetrics] = useState({ totalUpcoming: 0, totalTicketsIssued: 0, avgCheckInRate: 0 });
   const [dashboardEvents, setDashboardEvents] = useState<any[]>([]);
   const [dashboardPagination, setDashboardPagination] = useState({ total: 0, page: 1, limit: 10, totalPages: 0 });
+  const [currentPage, setCurrentPage] = useState(1);
   const [filterStatus, setFilterStatus] = useState<'upcoming' | 'past'>('upcoming');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -73,7 +74,7 @@ const AdminEvents: React.FC = () => {
       const [metricsData, eventsData] = await Promise.all([
         getDashboardMetrics(),
         getDashboardEvents({
-          page: dashboardPagination.page,
+          page: currentPage,
           limit: dashboardPagination.limit,
           status: filterStatus,
           search: debouncedSearch
@@ -95,19 +96,22 @@ const AdminEvents: React.FC = () => {
     if (activeTab === 'dashboard') {
       loadDashboard();
     }
-  }, [activeTab, dashboardPagination.page, filterStatus, debouncedSearch]);
+  }, [activeTab, currentPage, filterStatus, debouncedSearch]);
 
   const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
     setDashboardPagination(prev => ({ ...prev, page: newPage }));
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
+    setCurrentPage(1);
     setDashboardPagination(prev => ({ ...prev, page: 1 })); // Reset to first page on search
   };
 
   const handleFilterChange = (newStatus: 'upcoming' | 'past') => {
     setFilterStatus(newStatus);
+    setCurrentPage(1);
     setDashboardPagination(prev => ({ ...prev, page: 1 })); // Reset to first page on filter
   };
 
