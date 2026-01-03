@@ -4,8 +4,11 @@ Dockerfile*
 .dockerignore
 *.log
 .env
+.env.*
 coverage/
 dist/
 build/
 client/node_modules/
 server/node_modules/
+client/dist/
+server/dist/

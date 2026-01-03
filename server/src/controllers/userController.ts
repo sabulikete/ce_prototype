@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaClient, Prisma, Role, UserStatus } from '@prisma/client';
+import { listAdminUserRows } from '../services/adminUserService';
 
 const prisma = new PrismaClient();
 
@@ -17,6 +18,27 @@ export const listUsers = async (req: Request, res: Response) => {
     res.json(users);
   } catch (error) {
     console.error('Failed to list users', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+const parseNumberParam = (value: string | undefined) => {
+  if (!value) return undefined;
+  const parsed = Number(value);
+  return Number.isNaN(parsed) ? undefined : parsed;
+};
+
+export const listAdminUsers = async (req: Request, res: Response) => {
+  try {
+    const view = typeof req.query.view === 'string' ? req.query.view : undefined;
+    const search = typeof req.query.search === 'string' ? req.query.search : undefined;
+    const page = parseNumberParam(typeof req.query.page === 'string' ? req.query.page : undefined);
+    const pageSize = parseNumberParam(typeof req.query.pageSize === 'string' ? req.query.pageSize : undefined);
+
+    const result = await listAdminUserRows({ view, search, page, pageSize });
+    res.json(result);
+  } catch (error) {
+    console.error('Failed to list admin users', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };

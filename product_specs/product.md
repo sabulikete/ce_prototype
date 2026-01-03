@@ -159,11 +159,12 @@ Admin
 1. Admin dashboard
 2. admin permissions -> add a feature where when user is staff or admin, you can choose what feature they can access
 3. admin permission preset -> add preset to staffs. (events admin can only access event management, event staff can only access ticket scanner and the can only see certain events)
-4. for user management, invited user should show up in the user management page with the invited status.
-5. admin should be able to edit any user's info, it could be name, email or even add permissions if the user is an admin or staff.
-6. in the user management page, add a search for user full name or email. also add a filter for active and inactive users. Show active users by default.
-7. The user table includes full name, email, role, status, joined date, last login.
-8. Change the post to memorandum type in the content page. - done
+4. for user management, invited users must show up on a dedicated **Invited** tab (default view) with lifecycle metadata (sent date, last sent date, reminder count, inviter) and conflict badges.
+5. admins can resend or revoke invites directly from the Invited tab, respecting reminder caps and logging every action.
+6. admin should be able to edit any user's info, it could be name, email or even add permissions if the user is an admin or staff.
+7. in the user management page, add a search for user full name or email. also add a filter for active and inactive users. Show active users by default.
+8. The user table includes full name, email, role, status, joined date, last login.
+9. Change the post to memorandum type in the content page. - done
 
 
 Member
