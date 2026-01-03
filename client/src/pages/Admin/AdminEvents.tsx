@@ -83,7 +83,7 @@ const AdminEvents: React.FC = () => {
     const search = searchParams.get('search');
 
     if (page) {
-      setDashboardPagination(prev => ({ ...prev, page: parseInt(page) }));
+      setCurrentPage(parseInt(page));
     }
     if (status === 'upcoming' || status === 'past') {
       setFilterStatus(status);

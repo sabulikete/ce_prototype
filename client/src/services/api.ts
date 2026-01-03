@@ -272,7 +272,7 @@ export const getDashboardEvents = async (params: { page?: number; limit?: number
 
 // Event Detail API methods
 export const getEventDetail = async (eventId: number) => {
-  const response = await fetch(`${API_URL}/events/${eventId}`, {
+  const response = await fetch(`${API_URL}/admin/events/${eventId}`, {
     headers: getHeaders(),
   });
   if (!response.ok) {
@@ -294,7 +294,7 @@ export const getEventAttendees = async (
   if (params.search) queryParams.append('search', params.search);
 
   const response = await fetch(
-    `${API_URL}/events/${eventId}/attendees?${queryParams.toString()}`,
+    `${API_URL}/admin/events/${eventId}/attendees?${queryParams.toString()}`,
     {
       headers: getHeaders(),
     }
