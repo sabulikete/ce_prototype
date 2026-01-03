@@ -1,0 +1,102 @@
+openapi: 3.0.0
+info:
+  title: Admin Event Dashboard API
+  version: 1.0.0
+paths:
+  /api/admin/events/metrics:
+    get:
+      summary: Get dashboard metrics
+      tags:
+        - Admin Events
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalUpcoming:
+                    type: integer
+                  totalTicketsIssued:
+                    type: integer
+                  avgCheckInRate:
+                    type: number
+                    format: float
+  /api/admin/events:
+    get:
+      summary: List events with search and filter
+      tags:
+        - Admin Events
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [upcoming, past]
+            default: upcoming
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EventListItem'
+                  meta:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      totalPages:
+                        type: integer
+components:
+  schemas:
+    EventListItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        location:
+          type: string
+        status:
+          type: string
+          enum: [DRAFT, PUBLISHED, CANCELLED]
+        ticketStats:
+          type: object
+          properties:
+            issued:
+              type: integer
+            checkedIn:
+              type: integer
