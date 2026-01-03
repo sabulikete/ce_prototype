@@ -100,19 +100,16 @@ const AdminEvents: React.FC = () => {
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
-    setDashboardPagination(prev => ({ ...prev, page: newPage }));
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
     setCurrentPage(1);
-    setDashboardPagination(prev => ({ ...prev, page: 1 })); // Reset to first page on search
   };
 
   const handleFilterChange = (newStatus: 'upcoming' | 'past') => {
     setFilterStatus(newStatus);
     setCurrentPage(1);
-    setDashboardPagination(prev => ({ ...prev, page: 1 })); // Reset to first page on filter
   };
 
   const loadEvents = async () => {

@@ -1,9 +1,8 @@
 import { Router } from 'express';
 import * as eventController from '../controllers/eventController';
 import { authenticate, requireRole } from '../middleware/auth';
-
-const Event = require('../models/Event');
-const { Op } = require('sequelize');
+import Event from '../models/Event';
+import { Op } from 'sequelize';
 
 const router = Router();
 
