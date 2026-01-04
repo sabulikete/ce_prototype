@@ -1,0 +1,180 @@
+openapi: 3.1.0
+info:
+  title: Admin User Management
+  version: 0.1.0
+servers:
+  - url: https://api.ce-app.local
+paths:
+  /api/admin/users:
+    get:
+      summary: List users and invitations for the admin table
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: view
+          in: query
+          description: Filter dataset (`invited`, `active`, `inactive`, `all`)
+          schema:
+            type: string
+            enum: [invited, active, inactive, all]
+            default: invited
+        - name: search
+          in: query
+          description: Case-insensitive search over email/full name
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 10
+            maximum: 100
+            default: 25
+      responses:
+        "200":
+          description: Paginated list of user or invite rows
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserInviteRow'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        "401": { "$ref": "#/components/responses/Unauthorized" }
+        "403": { "$ref": "#/components/responses/Forbidden" }
+  /api/admin/invites/{inviteId}/resend:
+    post:
+      summary: Resend an invitation email and bump reminder count
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: inviteId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: false
+      responses:
+        "200":
+          description: Invitation resent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InviteDetail'
+        "400":
+          description: Max reminders exceeded or invite not resendable
+        "404": { "$ref": "#/components/responses/NotFound" }
+        "409":
+          description: Invitation already accepted or revoked
+  /api/admin/invites/{inviteId}/revoke:
+    patch:
+      summary: Revoke an invitation
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: inviteId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  maxLength: 280
+      responses:
+        "200":
+          description: Invitation revoked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InviteDetail'
+        "404": { "$ref": "#/components/responses/NotFound" }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Pagination:
+      type: object
+      properties:
+        page: { type: integer }
+        pageSize: { type: integer }
+        total: { type: integer }
+    UserInviteRow:
+      type: object
+      required: [id, source, email, role, status]
+      properties:
+        id:
+          type: integer
+        source:
+          type: string
+          enum: [USER, INVITE]
+        email:
+          type: string
+          format: email
+        fullName:
+          type: string
+          nullable: true
+        role:
+          type: string
+          enum: [ADMIN, STAFF, MEMBER]
+        status:
+          type: string
+          description: For invite rows returns InviteStatus; for users returns UserStatus
+        joinedAt:
+          type: string
+          format: date-time
+          nullable: true
+        lastLogin:
+          type: string
+          format: date-time
+          nullable: true
+        invitation:
+          $ref: '#/components/schemas/InvitationMetadata'
+    InvitationMetadata:
+      type: object
+      nullable: true
+      properties:
+        sentAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+        reminderCount:
+          type: integer
+        inviter:
+          type: object
+          properties:
+            id: { type: integer }
+            name: { type: string }
+            role: { type: string }
+        status:
+          type: string
+          enum: [PENDING, EXPIRED, REVOKED, ACCEPTED]
+  responses:
+    Unauthorized:
+      description: Missing or invalid token
+    Forbidden:
+      description: Authenticated but lacks admin privileges
+    NotFound:
+      description: Invite not found

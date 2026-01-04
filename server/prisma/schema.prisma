@@ -19,6 +19,13 @@ enum UserStatus {
   INVITED
 }
 
+enum InviteStatus {
+  PENDING
+  EXPIRED
+  REVOKED
+  ACCEPTED
+}
+
 enum ContentType {
   ANNOUNCEMENT
   ACTIVITY
@@ -61,6 +68,11 @@ model Invite {
   created_by Int
   creator    User      @relation("CreatedInvites", fields: [created_by], references: [id])
   created_at DateTime  @default(now())
+  status     InviteStatus @default(PENDING)
+  revoked_at DateTime?
+  reminder_count Int      @default(0)
+  last_sent_at DateTime   @default(now())
+  pending_email_key String? @unique
 }
 
 model Content {

@@ -51,6 +51,8 @@ Client runs on `http://localhost:5173` (or 5174 if 5173 is busy)
 - ✅ User activation flow
 - ✅ Role-based access (Admin/Staff/Member)
 - ✅ Database-backed authentication (Prisma + SQLite/MySQL)
+- ✅ Dedicated **Invited** tab that loads by default with lifecycle metadata (sent/last sent dates, reminder counts, inviter)
+- ✅ Resend/Revoke actions with conflict badges, reminder limits, and toast feedback
 
 ### 2. **Content Management** (`/admin/posts`)
 - ✅ Unified system for Announcements, Events, and Memos

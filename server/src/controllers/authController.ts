@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import * as userService from '../services/userService';
+import * as inviteService from '../services/inviteService';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { Role } from '@prisma/client';
@@ -8,7 +8,7 @@ export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
   try {
-    const user = await userService.findUserByEmail(email);
+    const user = await inviteService.findUserByEmail(email);
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
@@ -43,7 +43,7 @@ export const createInvite = async (req: Request, res: Response) => {
   const createdBy = req.user!.id;
 
   try {
-    const { invite, token } = await userService.createInvite(email, role as Role, createdBy, unitId);
+    const { invite, token } = await inviteService.createInvite(email, role as Role, createdBy, unitId);
     // In a real app, we would email this link. For MVP, we return it.
     const inviteLink = `${process.env.CLIENT_URL || 'http://localhost:5173'}/accept-invite?token=${token}`;
     
@@ -58,7 +58,7 @@ export const validateInvite = async (req: Request, res: Response) => {
   const { token } = req.params;
 
   try {
-    const invite = await userService.validateInvite(token);
+    const invite = await inviteService.validateInvite(token);
     if (!invite) {
       return res.status(404).json({ error: 'Invalid or expired invite' });
     }
@@ -80,7 +80,7 @@ export const acceptInvite = async (req: Request, res: Response) => {
   const { password } = req.body;
 
   try {
-    const user = await userService.acceptInvite(token, password);
+    const user = await inviteService.acceptInvite(token, password);
     
     if (!process.env.JWT_SECRET) {
         throw new Error("JWT_SECRET not configured");

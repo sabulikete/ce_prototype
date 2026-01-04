@@ -156,6 +156,33 @@ export const fetchUsers = async () => {
   return response.json();
 };
 
+export type AdminUserView = 'invited' | 'active' | 'inactive' | 'all';
+
+export type FetchAdminUsersParams = {
+  view?: AdminUserView;
+  page?: number;
+  pageSize?: number;
+  search?: string;
+};
+
+export const fetchAdminUserRows = async (params: FetchAdminUsersParams = {}) => {
+  const query = new URLSearchParams();
+  query.set('view', (params.view ?? 'invited').toString());
+  query.set('page', (params.page ?? 1).toString());
+  query.set('pageSize', (params.pageSize ?? 25).toString());
+  if (params.search) {
+    query.set('search', params.search);
+  }
+
+  const response = await fetch(`${API_URL}/admin/users?${query.toString()}`, {
+    headers: getHeaders(),
+  });
+  if (!response.ok) {
+    throw new Error('Failed to fetch admin users');
+  }
+  return response.json();
+};
+
 export const createInvite = async (email: string, role: string, name: string) => {
   const response = await fetch(`${API_URL}/admin/invites`, {
     method: 'POST',
@@ -164,6 +191,31 @@ export const createInvite = async (email: string, role: string, name: string) =>
   });
   if (!response.ok) {
     throw new Error('Failed to create invite');
+  }
+  return response.json();
+};
+
+export const resendInvite = async (inviteId: number) => {
+  const response = await fetch(`${API_URL}/admin/invites/${inviteId}/resend`, {
+    method: 'POST',
+    headers: getHeaders(),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.error || 'Failed to resend invite');
+  }
+  return response.json();
+};
+
+export const revokeInvite = async (inviteId: number, reason?: string) => {
+  const response = await fetch(`${API_URL}/admin/invites/${inviteId}/revoke`, {
+    method: 'PATCH',
+    headers: getHeaders(),
+    body: JSON.stringify(reason ? { reason } : {}),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.error || 'Failed to revoke invite');
   }
   return response.json();
 };
