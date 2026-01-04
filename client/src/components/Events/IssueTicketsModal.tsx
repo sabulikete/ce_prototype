@@ -24,10 +24,21 @@ interface UserResponse {
   status: string;
 }
 
+const MAX_TICKETS_PER_USER = 50;
+
+/**
+ * Validates and clamps quantity to valid range [1, MAX_TICKETS_PER_USER]
+ */
+const validateQuantity = (value: string): number => {
+  const parsed = parseInt(value) || 1;
+  return Math.min(MAX_TICKETS_PER_USER, Math.max(1, parsed));
+};
+
 const IssueTicketsModal: React.FC<IssueTicketsModalProps> = ({ isOpen, onClose, eventId }) => {
   const { showToast } = useToast();
   const [users, setUsers] = useState<UserOption[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<MultiValue<UserOption>>([]);
+  const [quantity, setQuantity] = useState<number>(1);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -63,9 +74,28 @@ const IssueTicketsModal: React.FC<IssueTicketsModalProps> = ({ isOpen, onClose, 
     try {
       setSubmitting(true);
       const userIds = selectedUsers.map(user => user.value);
-      await issueTickets(eventId, userIds);
-      showToast('Tickets issued successfully', 'success');
+      const result = await issueTickets(eventId, userIds, quantity);
+      
+      // Check for partial fulfillment or cap reached
+      const failedUsers = result.results.filter(r => r.error || r.issuedCount === 0);
+      const partialUsers = result.results.filter(r => r.capReached && r.issuedCount > 0);
+      
+      if (failedUsers.length > 0) {
+        showToast(
+          `Issued ${result.totalIssued} tickets. ${failedUsers.length} user(s) failed.`,
+          'warning'
+        );
+      } else if (partialUsers.length > 0) {
+        showToast(
+          `Issued ${result.totalIssued} tickets (some users hit capacity limit)`,
+          'warning'
+        );
+      } else {
+        showToast(`Successfully issued ${result.totalIssued} tickets`, 'success');
+      }
+      
       setSelectedUsers([]);
+      setQuantity(1);
       onClose();
     } catch (err: unknown) {
       showToast(getErrorMessage(err, 'Failed to issue tickets'), 'error');
@@ -77,6 +107,7 @@ const IssueTicketsModal: React.FC<IssueTicketsModalProps> = ({ isOpen, onClose, 
   const handleClose = () => {
     if (!submitting) {
       setSelectedUsers([]);
+      setQuantity(1);
       setError(null);
       onClose();
     }
@@ -132,6 +163,48 @@ const IssueTicketsModal: React.FC<IssueTicketsModalProps> = ({ isOpen, onClose, 
                 Select users to issue tickets. You can select multiple users at once.
               </p>
               
+              <div style={{ marginBottom: '16px' }}>
+                <label 
+                  htmlFor="ticket-quantity" 
+                  style={{ 
+                    display: 'block', 
+                    marginBottom: '8px', 
+                    fontWeight: 500,
+                    fontSize: '0.9em'
+                  }}
+                >
+                  Tickets per user
+                </label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <input
+                    id="ticket-quantity"
+                    type="number"
+                    min={1}
+                    max={MAX_TICKETS_PER_USER}
+                    value={quantity}
+                    onChange={(e) => setQuantity(validateQuantity(e.target.value))}
+                    disabled={submitting}
+                    style={{
+                      width: '80px',
+                      padding: '8px 12px',
+                      border: '1px solid #ccc',
+                      borderRadius: '4px',
+                      fontSize: '1em'
+                    }}
+                    aria-describedby="quantity-help"
+                  />
+                  <span id="quantity-help" style={{ fontSize: '0.85em', color: '#666' }}>
+                    Max {MAX_TICKETS_PER_USER} per user
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '8px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9em' }}>
+                  Select users
+                </label>
+              </div>
+              
               <Select
                 isMulti
                 options={users}
@@ -184,7 +257,10 @@ const IssueTicketsModal: React.FC<IssueTicketsModalProps> = ({ isOpen, onClose, 
             className="btn-primary"
             disabled={selectedUsers.length === 0 || submitting || loading}
           >
-            {submitting ? 'Issuing Tickets...' : `Issue Tickets (${selectedUsers.length})`}
+            {submitting 
+              ? 'Issuing Tickets...' 
+              : `Issue ${selectedUsers.length * quantity} Ticket${selectedUsers.length * quantity !== 1 ? 's' : ''}`
+            }
           </button>
         </div>
       </div>

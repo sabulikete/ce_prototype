@@ -1,7 +1,6 @@
-import { PrismaClient, Ticket } from '@prisma/client';
+import { Ticket } from '@prisma/client';
 import crypto from 'crypto';
-
-const prisma = new PrismaClient();
+import { prisma } from '../config/prisma';
 
 // Secret for signing QR codes. Should be in env.
 const QR_SECRET = process.env.QR_SECRET || 'default-qr-secret';
@@ -19,22 +18,22 @@ export const generateTicket = async (userId: number, eventId: number) => {
     return { ticket: existingTicket, token };
   }
 
+  // Generate unique ticket code
+  const code = `TKT-${crypto.randomBytes(8).toString('hex').toUpperCase()}`;
+  const codeHash = crypto.createHash('sha256').update(code).digest('hex');
+
   const ticket = await prisma.ticket.create({
     data: {
       user_id: userId,
       event_id: eventId,
-      code_hash: 'pending', // Placeholder, updated immediately below
+      code,
+      code_hash: codeHash,
     },
   });
 
   const payload = JSON.stringify({ ticketId: ticket.id, eventId });
   const signature = crypto.createHmac('sha256', QR_SECRET).update(payload).digest('hex');
   const token = `${Buffer.from(payload).toString('base64')}.${signature}`;
-
-  await prisma.ticket.update({
-    where: { id: ticket.id },
-    data: { code_hash: signature },
-  });
 
   return { ticket, token };
 };

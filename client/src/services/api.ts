@@ -325,14 +325,33 @@ export const fetchEventAttendees = async (eventId: number) => {
   return response.json();
 };
 
-export const issueTickets = async (eventId: number, userIds: number[]) => {
+export interface IssuanceResult {
+  userId: number;
+  issuedCount: number;
+  requestedCount: number;
+  capReached: boolean;
+  error?: string;
+}
+
+export interface IssueTicketsResponse {
+  message: string;
+  totalIssued: number;
+  results: IssuanceResult[];
+}
+
+export const issueTickets = async (
+  eventId: number,
+  userIds: number[],
+  quantity: number = 1
+): Promise<IssueTicketsResponse> => {
   const response = await fetch(`${API_URL}/admin/events/${eventId}/tickets`, {
     method: 'POST',
     headers: getHeaders(),
-    body: JSON.stringify({ userIds }),
+    body: JSON.stringify({ userIds, quantity }),
   });
   if (!response.ok) {
-    throw new Error('Failed to issue tickets');
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || 'Failed to issue tickets');
   }
   return response.json();
 };
