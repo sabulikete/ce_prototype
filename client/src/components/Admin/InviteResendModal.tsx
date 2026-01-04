@@ -80,7 +80,7 @@ const InviteResendModal: React.FC<InviteResendModalProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [inviteId, refreshKey]); // Include refreshKey to trigger refetch
+  }, [inviteId, refreshKey, showToast]); // Include refreshKey to trigger refetch
 
   const handleResend = async () => {
     if (!context?.resendEligible) return;

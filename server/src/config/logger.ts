@@ -148,7 +148,7 @@ export const validateLogRedaction = (logLine: string): boolean => {
 export const alertRules = [
   {
     name: 'InviteResendFailureSpike',
-    expression: `rate(invite_resend_failed[5m]) > ${alertThresholds.inviteResend.failedPerHourThreshold / 12}`,
+    expression: `increase(invite_resend_failed[5m]) > ${alertThresholds.inviteResend.failedPerHourThreshold / 12}`,
     severity: 'warning',
     summary: 'Elevated invite resend failures',
     description: 'More than expected invite resend attempts are being blocked. Check for user confusion or system issues.',
