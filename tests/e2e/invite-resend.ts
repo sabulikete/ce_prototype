@@ -79,7 +79,7 @@ async function runInviteResendTest() {
   console.log(`   Status: ${context.status}`);
   console.log(`   Reminders: ${context.reminderCount} / ${context.reminderCap}`);
   console.log(`   Resend Eligible: ${context.resendEligible}`);
-  console.log(`   Invite URL: ${context.inviteUrl ? context.inviteUrl.substring(0, 50) + '...' : '(will be generated on resend)'}`);
+  console.log(`   Invite URL: ${context.inviteUrl ? '(present - redacted for security)' : '(will be generated on resend)'}`);
 
   if (!context.resendEligible) {
     throw new Error('Invite is not eligible for resend');
@@ -122,7 +122,7 @@ async function runInviteResendTest() {
   if (!result.inviteUrl || result.inviteUrl.length < 10) {
     throw new Error('Resend did not return a valid invite URL');
   }
-  console.log(`   Invite URL: ${result.inviteUrl.substring(0, 50)}...`);
+  console.log('   Invite URL received (redacted for security).');
 
   // 6. SLA validation
   console.log('6. Validating SLA (3-second max)...');

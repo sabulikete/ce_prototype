@@ -16,8 +16,9 @@ export const getInviteResendContext = async (req: Request, res: Response) => {
 
   try {
     const context = await getResendContext(inviteId);
-    // Note: We cannot provide an invite URL here as we only store the token hash.
-    // The invite URL will be generated and returned when the invite is resent.
+    // inviteUrl is intentionally null in GET responses to ensure fresh tokens are
+    // generated only on explicit resend actions (POST), not on context queries.
+    // This aligns with the OpenAPI contract: inviteUrl is nullable here but required in POST response.
     return res.json({
       ...context,
       inviteUrl: null,
