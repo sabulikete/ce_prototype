@@ -1,6 +1,6 @@
 # ce_app Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-01-03
+Auto-generated from all feature plans. Last updated: January 3, 2026
 
 ## Active Technologies
 - Backend Node.js 20.x with TypeScript 5.9; Frontend React 18.3 (Vite) + Express 5, Prisma 5, JWT auth middleware, React Router 6, React Query/local data hooks (001-invited-user-status)
