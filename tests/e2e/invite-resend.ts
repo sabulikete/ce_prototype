@@ -79,18 +79,18 @@ async function runInviteResendTest() {
   console.log(`   Status: ${context.status}`);
   console.log(`   Reminders: ${context.reminderCount} / ${context.reminderCap}`);
   console.log(`   Resend Eligible: ${context.resendEligible}`);
-  console.log(`   Invite URL: ${context.inviteUrl ? '(present - redacted for security)' : '(will be generated on resend)'}`);
+  console.log(`   Invite URL: ${context.inviteUrl ? '(present in context - redacted for security)' : '(not returned in GET, per API contract)'}`);
 
   if (!context.resendEligible) {
     throw new Error('Invite is not eligible for resend');
   }
 
-  // 4. Note: Invite URL is generated on resend, not in context
-  console.log('4. Verifying context (URL will be generated on resend)...');
+  // 4. Verify GET resend-context intentionally returns null inviteUrl per API contract
+  console.log('4. Verifying context (inviteUrl is null per GET contract)...');
   if (context.inviteUrl) {
-    console.log(`   Unexpected: URL already present: ${context.inviteUrl.substring(0, 50)}...`);
+    console.log('   Unexpected: URL present in GET response (redacted for security)');
   } else {
-    console.log('   As expected, invite URL is null (will be generated on resend)');
+    console.log('   As expected, inviteUrl is null in GET response (fresh token generated on POST only)');
   }
 
   // 5. Trigger resend with timing measurement

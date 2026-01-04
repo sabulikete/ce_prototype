@@ -15,7 +15,7 @@ The `InviteReminder` table is the **authoritative record** of every resend attem
 model InviteReminder {
   id         Int      @id @default(autoincrement())
   invite_id  Int
-  invite     Invite   @relation(...)
+  invite     Invite   @relation(fields: [invite_id], references: [id], onDelete: Cascade)
   sent_by    Int      // admin user who triggered resend
   sent_at    DateTime @default(now())
   channels   String   // JSON array, e.g. '["email"]' or '["email","sms"]'
