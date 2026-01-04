@@ -20,13 +20,14 @@ interface InviteResendContext {
   reminderCount: number;
   reminderCap: number;
   resendEligible: boolean;
-  inviteUrl: string;
+  inviteUrl: string | null;
 }
 
 interface ResendResult {
   inviteId: number;
   reminderCount: number;
   resendEligible: boolean;
+  inviteUrl: string;
   message: string;
 }
 
@@ -78,18 +79,19 @@ async function runInviteResendTest() {
   console.log(`   Status: ${context.status}`);
   console.log(`   Reminders: ${context.reminderCount} / ${context.reminderCap}`);
   console.log(`   Resend Eligible: ${context.resendEligible}`);
-  console.log(`   Invite URL: ${context.inviteUrl.substring(0, 50)}...`);
+  console.log(`   Invite URL: ${context.inviteUrl ? context.inviteUrl.substring(0, 50) + '...' : '(will be generated on resend)'}`);
 
   if (!context.resendEligible) {
     throw new Error('Invite is not eligible for resend');
   }
 
-  // 4. Simulate copy to clipboard (just verify URL is present)
-  console.log('4. Simulating copy to clipboard...');
-  if (!context.inviteUrl || context.inviteUrl.length < 10) {
-    throw new Error('Invalid invite URL received');
+  // 4. Note: Invite URL is generated on resend, not in context
+  console.log('4. Verifying context (URL will be generated on resend)...');
+  if (context.inviteUrl) {
+    console.log(`   Unexpected: URL already present: ${context.inviteUrl.substring(0, 50)}...`);
+  } else {
+    console.log('   As expected, invite URL is null (will be generated on resend)');
   }
-  console.log('   Invite URL copied (simulated).');
 
   // 5. Trigger resend with timing measurement
   console.log('5. Triggering resend with SLA timing...');
@@ -115,6 +117,12 @@ async function runInviteResendTest() {
   console.log(`   Reminder count: ${result.reminderCount}`);
   console.log(`   Still eligible: ${result.resendEligible}`);
   console.log(`   Message: ${result.message}`);
+
+  // 5b. Verify invite URL is now available
+  if (!result.inviteUrl || result.inviteUrl.length < 10) {
+    throw new Error('Resend did not return a valid invite URL');
+  }
+  console.log(`   Invite URL: ${result.inviteUrl.substring(0, 50)}...`);
 
   // 6. SLA validation
   console.log('6. Validating SLA (3-second max)...');

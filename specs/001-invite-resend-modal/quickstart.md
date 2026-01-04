@@ -44,8 +44,8 @@ Future backend tasks (T005, T012, T013, T019) should import these helpers instea
 ### API Endpoints
 | Method | Path | Purpose |
 |--------|------|---------|
-| `GET` | `/api/admin/invites/:id/resend-context` | Fetch modal context (eligibility, metadata, link) |
-| `POST` | `/api/admin/invites/:id/resend` | Execute resend, increment reminder count |
+| `GET` | `/api/admin/invites/:id/resend-context` | Fetch modal context (eligibility, metadata; does not return invite URL) |
+| `POST` | `/api/admin/invites/:id/resend` | Execute resend, increment reminder count, and return new invite URL |
 
 ### Guardrails
 The modal enforces these business rules client-side with server-side validation:

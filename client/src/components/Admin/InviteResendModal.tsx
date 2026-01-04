@@ -210,7 +210,11 @@ const InviteResendModal: React.FC<InviteResendModalProps> = ({
                   />
                 ) : (
                   <p className="invite-url-placeholder">
-                    Click "Resend Invite" to generate a new invitation link.
+                    {context.resendEligible
+                      ? 'Click "Resend Invite" to generate a new invitation link.'
+                      : context.reminderCount >= context.reminderCap
+                        ? 'Maximum reminders reached. A new link cannot be generated.'
+                        : 'This invitation is no longer eligible for resend.'}
                   </p>
                 )}
               </section>

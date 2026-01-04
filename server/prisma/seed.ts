@@ -9,6 +9,13 @@ const inviteTtlDays = Number(process.env.INVITE_TTL_DAYS ?? 14);
 const daysFromNow = (days: number) => new Date(Date.now() + days * dayMs);
 
 /**
+ * Spacing between reminders in seed data (days).
+ * Note: This is for seed data consistency only. Actual reminder timing
+ * in production may vary based on admin behavior.
+ */
+const REMINDER_SPACING_DAYS = 1;
+
+/**
  * Calculate the sent date for a reminder in a sequence.
  * Reminders are spread backwards from the last sent date.
  * @param lastSentOffsetDays - Days offset from now for the most recent send
@@ -20,8 +27,8 @@ const calculateReminderSentDate = (
   reminderIndex: number,
   totalReminders: number
 ): Date => {
-  // Each reminder is 1 day apart, oldest first
-  const daysBack = totalReminders - 1 - reminderIndex;
+  // Each reminder is REMINDER_SPACING_DAYS apart, oldest first
+  const daysBack = (totalReminders - 1 - reminderIndex) * REMINDER_SPACING_DAYS;
   return daysFromNow(lastSentOffsetDays - daysBack);
 };
 

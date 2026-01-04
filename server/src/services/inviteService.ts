@@ -13,7 +13,11 @@ import crypto from 'crypto';
 
 const prisma = new PrismaClient();
 export const INVITE_TTL_DAYS = Number(process.env.INVITE_TTL_DAYS ?? 14);
-/** @deprecated Use inviteConfig.reminderCap from config/invites.ts */
+/**
+ * @deprecated Use inviteConfig.reminderCap from config/invites.ts instead.
+ * This constant is exported only for backward compatibility and will be removed
+ * after 2026-07-01. Do not use in new code or reference from environment variables.
+ */
 export const INVITE_MAX_REMINDERS = inviteConfig.reminderCap;
 
 const inviteTtlMs = INVITE_TTL_DAYS * 24 * 60 * 60 * 1000;
