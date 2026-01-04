@@ -39,11 +39,11 @@ export const login = async (req: Request, res: Response) => {
 };
 
 export const createInvite = async (req: Request, res: Response) => {
-  const { email, role, unitId } = req.body;
+  const { email, role, unitId, name } = req.body;
   const createdBy = req.user!.id;
 
   try {
-    const { invite, token } = await inviteService.createInvite(email, role as Role, createdBy, unitId);
+    const { invite, token } = await inviteService.createInvite(email, role as Role, createdBy, unitId, name);
     // In a real app, we would email this link. For MVP, we return it.
     const inviteLink = `${process.env.CLIENT_URL || 'http://localhost:5173'}/accept-invite?token=${token}`;
     

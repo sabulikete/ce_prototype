@@ -47,6 +47,7 @@ enum Visibility {
 model User {
   id            Int       @id @default(autoincrement())
   email         String    @unique
+  name          String?
   password_hash String
   role          Role
   unit_id       String?
@@ -55,11 +56,13 @@ model User {
   tickets           Ticket[]
   billingStatements BillingStatement[]
   createdInvites    Invite[] @relation("CreatedInvites")
+  sentInvites       Invite[] @relation("SentInvites")
 }
 
 model Invite {
   id         Int       @id @default(autoincrement())
   email      String
+  name       String?
   role       Role
   unit_id    String?
   token_hash String
@@ -71,8 +74,26 @@ model Invite {
   status     InviteStatus @default(PENDING)
   revoked_at DateTime?
   reminder_count Int      @default(0)
-  last_sent_at DateTime   @default(now())
+  last_sent_at   DateTime @default(now())
+  last_sent_by   Int?
+  sender         User?    @relation("SentInvites", fields: [last_sent_by], references: [id])
   pending_email_key String? @unique
+
+  reminders InviteReminder[]
+}
+
+/// Source of truth for invite resend history. Each row represents one resend attempt.
+model InviteReminder {
+  id         Int      @id @default(autoincrement())
+  invite_id  Int
+  invite     Invite   @relation(fields: [invite_id], references: [id], onDelete: Cascade)
+  sent_by    Int
+  sent_at    DateTime @default(now())
+  channels   String   /// JSON array of delivery channels used, e.g. ["email"] or ["email","sms"]
+  success    Boolean  @default(true)
+  error_code String?  /// Provider error code if delivery failed
+
+  @@index([invite_id, sent_at])
 }
 
 model Content {

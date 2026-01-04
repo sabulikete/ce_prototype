@@ -1,12 +1,24 @@
 import { Invite, InviteStatus, PrismaClient, Role, UserStatus } from '@prisma/client';
 import { InviteConflictFlag } from '../types/adminUsers';
 import { emitMetric, logAuditEvent } from '../middleware/logging';
+import {
+  logInviteResendSuccess,
+  logInviteResendFailure,
+  logInviteRevoke,
+  emitMetric as emitAuditMetric,
+} from '../utils/auditLogger';
+import { inviteConfig, resolveResendChannels, isReminderCapReached } from '../config/invites';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 
 const prisma = new PrismaClient();
 export const INVITE_TTL_DAYS = Number(process.env.INVITE_TTL_DAYS ?? 14);
-export const INVITE_MAX_REMINDERS = Number(process.env.INVITE_MAX_REMINDERS ?? 5);
+/**
+ * @deprecated Use inviteConfig.reminderCap from config/invites.ts instead.
+ * This constant is exported only for backward compatibility and will be removed
+ * after 2026-07-01. Do not use in new code or reference from environment variables.
+ */
+export const INVITE_MAX_REMINDERS = inviteConfig.reminderCap;
 
 const inviteTtlMs = INVITE_TTL_DAYS * 24 * 60 * 60 * 1000;
 
@@ -26,7 +38,7 @@ export class InviteActionError extends Error {
   }
 }
 
-export const createUser = async (email: string, password: string, role: Role, unitId?: string) => {
+export const createUser = async (email: string, password: string, role: Role, unitId?: string, name?: string) => {
   const passwordHash = await bcrypt.hash(password, 10);
   return prisma.user.create({
     data: {
@@ -35,6 +47,7 @@ export const createUser = async (email: string, password: string, role: Role, un
       role,
       unit_id: unitId,
       status: UserStatus.ACTIVE,
+      name: name?.trim() || null,
     },
   });
 };
@@ -46,7 +59,13 @@ export const findUserByEmail = async (email: string) => {
   });
 };
 
-export const createInvite = async (email: string, role: Role, createdByUserId: number, unitId?: string) => {
+export const createInvite = async (
+  email: string,
+  role: Role,
+  createdByUserId: number,
+  unitId?: string,
+  name?: string,
+) => {
   const cleanEmail = email.trim();
   const normalizedEmail = normalizeEmail(email);
   const token = crypto.randomBytes(32).toString('hex');
@@ -55,6 +74,7 @@ export const createInvite = async (email: string, role: Role, createdByUserId: n
 
   const baseData = {
     email: cleanEmail,
+    name: name?.trim() || null,
     role,
     unit_id: unitId,
     token_hash: tokenHash,
@@ -111,7 +131,7 @@ export const acceptInvite = async (token: string, password: string) => {
       throw new Error('User already exists');
   }
 
-  const user = await createUser(invite.email, password, invite.role, invite.unit_id || undefined);
+  const user = await createUser(invite.email, password, invite.role, invite.unit_id || undefined, invite.name || undefined);
 
   await prisma.invite.update({
     where: { id: invite.id },
@@ -170,7 +190,7 @@ const assertInviteResendable = (invite: Invite) => {
   if (invite.status === InviteStatus.REVOKED) {
     throw new InviteActionError('Invite already revoked', 409);
   }
-  if (invite.reminder_count >= INVITE_MAX_REMINDERS) {
+  if (isReminderCapReached(invite.reminder_count)) {
     throw new InviteActionError('Maximum reminders reached', 400);
   }
 };
@@ -184,29 +204,138 @@ const assertInviteRevokable = (invite: Invite) => {
   }
 };
 
-export const resendInviteById = async (inviteId: number, actorId: number) => {
-  const invite = await loadInviteOrThrow(inviteId);
-  assertInviteResendable(invite);
-  const now = new Date();
-  const updated = await prisma.invite.update({
-    where: { id: invite.id },
-    data: {
-      reminder_count: invite.reminder_count + 1,
-      last_sent_at: now,
-      expires_at: buildInviteExpiry(),
-      status: InviteStatus.PENDING,
-      revoked_at: null,
-      pending_email_key: buildPendingEmailKey(InviteStatus.PENDING, invite.email),
+// ────────────────────────────────────────────────────────────────────────────────
+// Resend eligibility helpers (used by resend-context endpoint and modal)
+// ────────────────────────────────────────────────────────────────────────────────
+
+export type ResendEligibility = {
+  eligible: boolean;
+  reason: string | null;
+};
+
+/**
+ * Determine whether an invite can be resent and provide a human-readable reason if not.
+ */
+export const checkResendEligibility = (invite: Invite): ResendEligibility => {
+  if (invite.status === InviteStatus.ACCEPTED) {
+    return { eligible: false, reason: 'Invite has already been accepted' };
+  }
+  if (invite.status === InviteStatus.REVOKED) {
+    return { eligible: false, reason: 'Invite has been revoked' };
+  }
+  if (isReminderCapReached(invite.reminder_count)) {
+    return { eligible: false, reason: `Reminder cap of ${inviteConfig.reminderCap} reached` };
+  }
+  return { eligible: true, reason: null };
+};
+
+/**
+ * Build the resend context payload for the modal, including invite metadata and eligibility.
+ */
+export const getResendContext = async (inviteId: number) => {
+  const invite = await prisma.invite.findUnique({
+    where: { id: inviteId },
+    include: {
+      creator: { select: { id: true, email: true } },
+      sender: { select: { id: true, email: true } },
     },
   });
-  logAuditEvent('invite.resend', {
+
+  if (!invite) {
+    throw new InviteActionError('Invite not found', 404);
+  }
+
+  const eligibility = checkResendEligibility(invite);
+
+  return {
+    inviteId: invite.id,
+    email: invite.email,
+    name: invite.name,
+    status: invite.status,
+    reminderCount: invite.reminder_count,
+    reminderCap: inviteConfig.reminderCap,
+    lastSentAt: invite.last_sent_at,
+    lastSentBy: invite.sender?.email ?? invite.creator.email,
+    resendEligible: eligibility.eligible,
+    eligibilityReason: eligibility.reason,
+    expiresAt: invite.expires_at,
+    // Additional status dates for guardrail UI messaging
+    usedAt: invite.used_at,
+    revokedAt: invite.revoked_at,
+  };
+};
+
+export const resendInviteById = async (
+  inviteId: number,
+  actorId: number,
+  originalChannels: Array<'email' | 'sms'> = ['email'],
+) => {
+  const invite = await loadInviteOrThrow(inviteId);
+
+  // Check eligibility and log failure if blocked
+  const eligibility = checkResendEligibility(invite);
+  if (!eligibility.eligible) {
+    logInviteResendFailure({
+      actorId,
+      inviteId: invite.id,
+      reason: eligibility.reason || 'Unknown',
+      status: invite.status,
+      reminderCount: invite.reminder_count,
+    });
+    emitAuditMetric('invite_resend_failed', 1, {
+      status: invite.status,
+      reason: eligibility.reason,
+    });
+    throw new InviteActionError(eligibility.reason || 'Invite cannot be resent', 400);
+  }
+
+  const channels = resolveResendChannels(originalChannels);
+  const now = new Date();
+
+  // Generate a new token for the resend
+  const token = crypto.randomBytes(32).toString('hex');
+  const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+  // Transactional: insert reminder record (source of truth) and update invite summary
+  const [, updated] = await prisma.$transaction([
+    prisma.inviteReminder.create({
+      data: {
+        invite_id: invite.id,
+        sent_by: actorId,
+        sent_at: now,
+        channels: JSON.stringify(channels),
+        success: true,
+      },
+    }),
+    prisma.invite.update({
+      where: { id: invite.id },
+      data: {
+        reminder_count: { increment: 1 },
+        last_sent_at: now,
+        last_sent_by: actorId,
+        expires_at: buildInviteExpiry(),
+        status: InviteStatus.PENDING,
+        revoked_at: null,
+        pending_email_key: buildPendingEmailKey(InviteStatus.PENDING, invite.email),
+        token_hash: tokenHash,
+      },
+    }),
+  ]);
+
+  logInviteResendSuccess({
     actorId,
     inviteId: invite.id,
     reminderCount: updated.reminder_count,
     status: updated.status,
+    channels,
   });
-  emitMetric('invite_resend_total', 1, { status: updated.status });
-  return updated;
+  emitAuditMetric('invite_resend_total', 1, { status: updated.status });
+
+  return {
+    ...updated,
+    token,
+    resendEligible: !isReminderCapReached(updated.reminder_count),
+  };
 };
 
 export const revokeInviteById = async (inviteId: number, actorId: number, reason?: string) => {
@@ -221,12 +350,12 @@ export const revokeInviteById = async (inviteId: number, actorId: number, reason
       pending_email_key: null,
     },
   });
-  logAuditEvent('invite.revoke', {
+  logInviteRevoke({
     actorId,
     inviteId: invite.id,
     reason: reason || null,
     status: updated.status,
   });
-  emitMetric('invite_revoke_total', 1, { status: updated.status });
+  emitAuditMetric('invite_revoke_total', 1, { status: updated.status });
   return updated;
 };

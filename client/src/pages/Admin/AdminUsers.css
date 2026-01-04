@@ -26,7 +26,8 @@
   background: var(--bg-card);
   border-radius: 8px;
   border: 1px solid var(--border-light);
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .table-toolbar {
@@ -63,6 +64,37 @@
 .toolbar-inputs {
   display: flex;
   gap: 0.5rem;
+  align-items: center;
+}
+
+.invite-status-filter {
+  display: flex;
+  align-items: center;
+}
+
+.status-filter-select {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-light);
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  padding-right: 1.75rem;
+  min-width: 130px;
+}
+
+.status-filter-select:hover {
+  border-color: var(--primary);
+}
+
+.status-filter-select:focus {
+  outline: none;
+  border-color: var(--primary);
 }
 
 .clear-filter-btn {
@@ -127,6 +159,7 @@
 
 .admin-table {
   width: 100%;
+  min-width: 900px;
   border-collapse: collapse;
 }
 
@@ -142,6 +175,14 @@
   font-weight: 600;
   color: var(--text-muted);
   font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.admin-table th:last-child,
+.admin-table td:last-child {
+  text-align: right;
+  min-width: 160px;
 }
 
 .admin-table tr:last-child td {
@@ -274,6 +315,7 @@
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .invite-placeholder {
@@ -284,6 +326,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
+  justify-content: flex-end;
 }
 
 .invite-action-btn {

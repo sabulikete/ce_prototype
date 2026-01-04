@@ -207,6 +207,78 @@ export const resendInvite = async (inviteId: number) => {
   return response.json();
 };
 
+// ────────────────────────────────────────────────────────────────────────────────
+// Invite Resend Modal Types and API
+// ────────────────────────────────────────────────────────────────────────────────
+
+export type DeliveryChannel = 'email' | 'sms';
+
+export interface ResendContextResponse {
+  inviteId: number;
+  fullName?: string | null;
+  email: string;
+  status: string;
+  reminderCount: number;
+  reminderCap: number;
+  lastSentAt: string | null;
+  lastSentBy: string | null;
+  channels: DeliveryChannel[];
+  resendEligible: boolean;
+  eligibilityReason: string | null;
+  inviteUrl: string | null;
+  /** When the invite was accepted (for ACCEPTED status) */
+  usedAt?: string | null;
+  /** When the invite was revoked (for REVOKED status) */
+  revokedAt?: string | null;
+  /** When the invite expires */
+  expiresAt?: string | null;
+}
+
+export interface ResendSuccessResponse {
+  inviteId: number;
+  reminderCount: number;
+  lastSentAt: string;
+  channels: DeliveryChannel[];
+  resendEligible: boolean;
+  inviteUrl: string;
+  message: string;
+}
+
+/**
+ * Fetch the resend context for the Invite Resend Modal.
+ * Returns metadata, eligibility, and the invite URL for display.
+ */
+export const fetchInviteResendContext = async (inviteId: number): Promise<ResendContextResponse> => {
+  const response = await fetch(`${API_URL}/admin/invites/${inviteId}/resend-context`, {
+    headers: getHeaders(),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.error || 'Failed to fetch resend context');
+  }
+  const data = await response.json();
+  // Map 'name' from API to 'fullName' for UI consistency
+  return {
+    ...data,
+    fullName: data.name ?? data.fullName ?? null,
+  };
+};
+
+/**
+ * Resend an invite and return updated metadata.
+ */
+export const resendInviteWithContext = async (inviteId: number): Promise<ResendSuccessResponse> => {
+  const response = await fetch(`${API_URL}/admin/invites/${inviteId}/resend`, {
+    method: 'POST',
+    headers: getHeaders(),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.error || 'Failed to resend invite');
+  }
+  return response.json();
+};
+
 export const revokeInvite = async (inviteId: number, reason?: string) => {
   const response = await fetch(`${API_URL}/admin/invites/${inviteId}/revoke`, {
     method: 'PATCH',

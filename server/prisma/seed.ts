@@ -6,6 +6,32 @@ const prisma = new PrismaClient();
 const dayMs = 24 * 60 * 60 * 1000;
 const inviteTtlDays = Number(process.env.INVITE_TTL_DAYS ?? 14);
 
+const daysFromNow = (days: number) => new Date(Date.now() + days * dayMs);
+
+/**
+ * Spacing between reminders in seed data (days).
+ * Note: This is for seed data consistency only. Actual reminder timing
+ * in production may vary based on admin behavior.
+ */
+const REMINDER_SPACING_DAYS = 1;
+
+/**
+ * Calculate the sent date for a reminder in a sequence.
+ * Reminders are spread backwards from the last sent date.
+ * @param lastSentOffsetDays - Days offset from now for the most recent send
+ * @param reminderIndex - Zero-based index of this reminder (0 = oldest)
+ * @param totalReminders - Total number of reminders in the sequence
+ */
+const calculateReminderSentDate = (
+  lastSentOffsetDays: number,
+  reminderIndex: number,
+  totalReminders: number
+): Date => {
+  // Each reminder is REMINDER_SPACING_DAYS apart, oldest first
+  const daysBack = (totalReminders - 1 - reminderIndex) * REMINDER_SPACING_DAYS;
+  return daysFromNow(lastSentOffsetDays - daysBack);
+};
+
 type InviteSeed = {
   email: string;
   label: string;
@@ -15,6 +41,8 @@ type InviteSeed = {
   status: InviteStatus;
   reminderCount?: number;
   lastSentOffsetDays?: number;
+  /** If true, last_sent_by will be set to the admin user (simulating a resend). */
+  hasBeenResent?: boolean;
 };
 
 const inviteSeeds: InviteSeed[] = [
@@ -26,6 +54,17 @@ const inviteSeeds: InviteSeed[] = [
     status: InviteStatus.PENDING,
     reminderCount: 1,
     lastSentOffsetDays: -3,
+    hasBeenResent: true,
+  },
+  {
+    email: 'pending.maxed@example.com',
+    label: 'Pending invite at reminder cap',
+    role: Role.MEMBER,
+    expiresOffsetDays: inviteTtlDays,
+    status: InviteStatus.PENDING,
+    reminderCount: 3, // matches default INVITE_REMINDER_CAP
+    lastSentOffsetDays: -1,
+    hasBeenResent: true,
   },
   {
     email: 'expired.invite@example.com',
@@ -42,9 +81,15 @@ const inviteSeeds: InviteSeed[] = [
     status: InviteStatus.ACCEPTED,
     usedAt: new Date(),
   },
+  {
+    email: 'revoked.invite@example.com',
+    label: 'Revoked invite',
+    role: Role.MEMBER,
+    expiresOffsetDays: inviteTtlDays,
+    status: InviteStatus.REVOKED,
+    reminderCount: 0,
+  },
 ];
-
-const daysFromNow = (days: number) => new Date(Date.now() + days * dayMs);
 
 async function main() {
   const adminEmail = 'admin@example.com';
@@ -80,7 +125,7 @@ async function main() {
     const lastSentAt = seed.lastSentOffsetDays ? daysFromNow(seed.lastSentOffsetDays) : now;
     const pendingKey = seed.status === InviteStatus.PENDING ? seed.email.toLowerCase() : null;
 
-    await prisma.invite.create({
+    const invite = await prisma.invite.create({
       data: {
         email: seed.email.toLowerCase(),
         role: seed.role,
@@ -91,9 +136,23 @@ async function main() {
         status: seed.status,
         reminder_count: seed.reminderCount ?? 0,
         last_sent_at: lastSentAt,
+        last_sent_by: seed.hasBeenResent ? adminUser.id : null,
         pending_email_key: pendingKey,
       },
     });
+
+    // Create InviteReminder history rows for resent invites
+    if (seed.hasBeenResent && (seed.reminderCount ?? 0) > 0) {
+      const reminderCount = seed.reminderCount ?? 0;
+      const reminderData = Array.from({ length: reminderCount }, (_, i) => ({
+        invite_id: invite.id,
+        sent_by: adminUser.id,
+        sent_at: calculateReminderSentDate(seed.lastSentOffsetDays ?? 0, i, reminderCount),
+        channels: JSON.stringify(['email']),
+        success: true,
+      }));
+      await prisma.inviteReminder.createMany({ data: reminderData });
+    }
 
     seededInvites.push({ label: seed.label, email: seed.email, token });
   }

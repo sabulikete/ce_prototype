@@ -2,6 +2,7 @@ import { InviteStatus, Role, UserStatus } from '@prisma/client';
 
 export type AdminUserViewFilter = 'invited' | 'active' | 'inactive' | 'all';
 export type AdminUserSource = 'USER' | 'INVITE';
+export type DeliveryChannel = 'email' | 'sms';
 
 export type InviteConflictFlag =
   | { type: 'DEACTIVATED_USER'; userId: number; status: UserStatus }
@@ -11,6 +12,8 @@ export interface InviteActionPermissions {
   canResend: boolean;
   canRevoke: boolean;
   maxReminders: number;
+  resendEligible: boolean;
+  eligibilityReason: string | null;
 }
 
 export interface InvitationMetadata {
@@ -50,4 +53,49 @@ export interface PaginationMeta {
 export interface AdminUserListResponse {
   data: UserInviteRow[];
   pagination: PaginationMeta;
+}
+
+// ────────────────────────────────────────────────────────────────────────────────
+// Resend Modal Types (aligned with OpenAPI contracts/openapi-invite-resend.yaml)
+// ────────────────────────────────────────────────────────────────────────────────
+
+export interface ResendContextResponse {
+  inviteId: number;
+  fullName?: string | null;
+  email: string;
+  status: InviteStatus;
+  reminderCount: number;
+  reminderCap: number;
+  lastSentAt: Date | null;
+  lastSentBy: string | null;
+  channels: DeliveryChannel[];
+  resendEligible: boolean;
+  eligibilityReason: string | null;
+  inviteUrl: string;
+}
+
+export interface ResendSuccessResponse {
+  inviteId: number;
+  reminderCount: number;
+  lastSentAt: Date;
+  channels: DeliveryChannel[];
+  resendEligible: boolean;
+  message: string;
+}
+
+export type ResendConflictCode =
+  | 'INVITE_ALREADY_ACTIVATED'
+  | 'INVITE_REVOKED'
+  | 'REMINDER_CAP_REACHED'
+  | 'STATUS_CHANGED';
+
+export interface ResendConflictError {
+  code: ResendConflictCode;
+  message: string;
+}
+
+export interface RateLimitError {
+  code: 'RATE_LIMIT_EXCEEDED';
+  retryAfter: number;
+  message?: string;
 }

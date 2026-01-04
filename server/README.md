@@ -52,3 +52,36 @@ If a rollback is required:
 ### Related Scripts
 - `scripts/backfill-invite-status.ts` – Idempotent script to derive invite statuses and dedup pending invites.
 - `prisma/seed.ts` – Seeds an admin user plus representative invite fixtures (pending, expired, accepted) for manual QA.
+
+## Invite Resend Feature
+
+Admins can resend pending invites via the Admin Users page. The feature includes:
+
+### Configuration
+Set these environment variables (or use defaults):
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `INVITE_REMINDER_CAP` | `3` | Maximum resend attempts per invite |
+| `INVITE_RESEND_CHANNEL_POLICY` | `mirror-original` | Channel selection strategy |
+| `INVITE_RESEND_RATE_LIMIT` | `5` | Resends per admin per minute |
+
+### API Endpoints
+
+```
+GET  /api/admin/invites/:id/resend-context  → Modal metadata + eligibility
+POST /api/admin/invites/:id/resend          → Execute resend
+```
+
+### Audit Trail
+Every resend attempt is logged to stdout as JSON:
+- `invite.resend.success` – Successful resend with reminder count
+- `invite.resend.failure` – Blocked attempt with reason
+
+Sensitive fields (invite URLs, tokens) are automatically redacted.
+
+### Metrics
+- `invite_resend_total` – Count of successful resends
+- `invite_resend_failed` – Count of blocked attempts
+
+See `specs/001-invite-resend-modal/quickstart.md` for detailed documentation.
