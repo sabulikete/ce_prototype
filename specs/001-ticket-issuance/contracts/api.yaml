@@ -1,0 +1,86 @@
+openapi: 3.0.0
+info:
+  title: Ticket Issuance API
+  version: 1.0.0
+paths:
+  /api/events/{eventId}/tickets:
+    post:
+      summary: Issue tickets for an event
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quantity:
+                  type: integer
+                  minimum: 1
+                  maximum: 50
+              required:
+                - quantity
+      responses:
+        '201':
+          description: Tickets issued successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  issuedCount:
+                    type: integer
+                  requestedCount:
+                    type: integer
+                  capReached:
+                    type: boolean
+                  tickets:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Ticket'
+        '400':
+          description: Invalid request or cap exceeded (if strict)
+        '403':
+          description: User not authorized (e.g. Suspended)
+    get:
+      summary: List my tickets for an event
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of tickets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ticket'
+
+components:
+  schemas:
+    Ticket:
+      type: object
+      properties:
+        id:
+          type: integer
+        eventId:
+          type: integer
+        userId:
+          type: integer
+        code:
+          type: string
+        status:
+          type: string
+          enum: [VALID, VOIDED]
+        createdAt:
+          type: string
+          format: date-time

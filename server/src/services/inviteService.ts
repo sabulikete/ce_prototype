@@ -100,6 +100,31 @@ export const createInvite = async (
         data: baseData,
       });
 
+  // Create or update User with INVITED status so they can receive tickets before accepting
+  const existingUser = await findUserByEmail(cleanEmail);
+  if (!existingUser) {
+    // Create user with INVITED status and placeholder password
+    const placeholderPasswordHash = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10);
+    await prisma.user.create({
+      data: {
+        email: cleanEmail,
+        password_hash: placeholderPasswordHash,
+        role,
+        unit_id: unitId,
+        status: UserStatus.INVITED,
+        name: name?.trim() || null,
+      },
+    });
+  } else if (existingUser.status === UserStatus.SUSPENDED) {
+    // Don't modify suspended users
+  } else if (existingUser.status !== UserStatus.ACTIVE) {
+    // Update existing non-active user to INVITED status
+    await prisma.user.update({
+      where: { id: existingUser.id },
+      data: { status: UserStatus.INVITED },
+    });
+  }
+
   return { invite, token };
 };
 

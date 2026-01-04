@@ -185,4 +185,10 @@ event scanning
 1. once ticket is scan, it will show the ticket name holder and how many ticket they own for that event. ex (Joe Doe 1 out of 4 scanned.) there is also a confirm button once click the qr code ticket would be checked in.
 2. The qr code should also contain the ticket number below the qr code itself to help with manual verification.
 
+Ticket Issuance
+1. Users can purchase multiple tickets for a single event (default cap: 50 tickets per user per event).
+2. The ticket cap should be stored as a configurable variable (e.g., `MAX_TICKETS_PER_USER_PER_EVENT`) for easy adjustment. In future, this will be editable via Admin Settings.
+3. If a user already owns tickets for an event and purchases more, the new tickets are added to their existing count (cumulative, up to the cap).
+4. Users with "Invited" status can have tickets issued to their account. Once they activate their account, they can view their QR codes.
+
 
