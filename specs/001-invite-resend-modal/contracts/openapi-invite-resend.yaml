@@ -1,0 +1,298 @@
+openapi: 3.0.3
+info:
+  title: Invite Resend API
+  description: |
+    Endpoints for the Invite Resend Modal feature. These routes allow admins
+    to fetch resend context (metadata + live invite link) and trigger a
+    resend that mirrors the original delivery channels.
+  version: 1.0.0-draft
+  contact:
+    name: Platform Team
+
+servers:
+  - url: /api
+    description: API gateway prefix
+
+tags:
+  - name: Invites
+    description: Admin invite management
+
+paths:
+  /admin/invites/{inviteId}/resend-context:
+    get:
+      operationId: getInviteResendContext
+      summary: Fetch resend modal context
+      description: |
+        Returns metadata required by the Resend Invite modal including
+        invitee identity, reminder history, eligibility flags, and a
+        signed invite URL. This endpoint is purpose-built for the modal
+        and is distinct from the general invite detail endpoint.
+      tags:
+        - Invites
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/inviteId'
+      responses:
+        '200':
+          description: Resend context retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResendContextResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/invites/{inviteId}/resend:
+    post:
+      operationId: resendInvite
+      summary: Resend an invitation
+      description: |
+        Resends the invitation using the same channel(s) as the original
+        (or email-only if policy configured). Increments reminder count
+        and writes an audit record. Returns updated invite metadata on
+        success.
+      tags:
+        - Invites
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/inviteId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comment:
+                  type: string
+                  maxLength: 500
+                  description: Optional admin note attached to the resend audit record
+      responses:
+        '200':
+          description: Invite resent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResendSuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Conflict – invite status changed or reminder cap reached
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResendConflictError'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    inviteId:
+      name: inviteId
+      in: path
+      required: true
+      description: UUID of the invite
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    ResendContextResponse:
+      type: object
+      required:
+        - inviteId
+        - fullName
+        - email
+        - status
+        - reminderCount
+        - reminderCap
+        - lastSentAt
+        - channels
+        - resendEligible
+        - inviteUrl
+      properties:
+        inviteId:
+          type: string
+          format: uuid
+        fullName:
+          type: string
+        email:
+          type: string
+          format: email
+        status:
+          $ref: '#/components/schemas/InviteStatus'
+        reminderCount:
+          type: integer
+          minimum: 0
+        reminderCap:
+          type: integer
+          minimum: 1
+        lastSentAt:
+          type: string
+          format: date-time
+          nullable: true
+        lastSentBy:
+          type: string
+          nullable: true
+          description: Name of admin who last sent the invite/reminder
+        channels:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeliveryChannel'
+          minItems: 1
+        resendEligible:
+          type: boolean
+          description: False if reminder cap reached or invite status blocks resend
+        eligibilityReason:
+          type: string
+          nullable: true
+          description: Human-readable reason when resendEligible is false
+        inviteUrl:
+          type: string
+          format: uri
+          description: Signed URL the invitee uses to accept; display-only in modal
+
+    ResendSuccessResponse:
+      type: object
+      required:
+        - inviteId
+        - reminderCount
+        - lastSentAt
+        - channels
+        - resendEligible
+      properties:
+        inviteId:
+          type: string
+          format: uuid
+        reminderCount:
+          type: integer
+          minimum: 0
+        lastSentAt:
+          type: string
+          format: date-time
+        channels:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeliveryChannel'
+        resendEligible:
+          type: boolean
+          description: Updated eligibility after this resend
+        message:
+          type: string
+          description: Confirmation message for toast
+
+    ResendConflictError:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          enum:
+            - INVITE_ALREADY_ACTIVATED
+            - INVITE_REVOKED
+            - REMINDER_CAP_REACHED
+            - STATUS_CHANGED
+        message:
+          type: string
+
+    RateLimitError:
+      type: object
+      required:
+        - code
+        - retryAfter
+      properties:
+        code:
+          type: string
+          enum:
+            - RATE_LIMIT_EXCEEDED
+        retryAfter:
+          type: integer
+          description: Seconds until the rate limit resets
+        message:
+          type: string
+
+    InviteStatus:
+      type: string
+      enum:
+        - pending
+        - sent
+        - activated
+        - expired
+        - revoked
+
+    DeliveryChannel:
+      type: string
+      enum:
+        - email
+        - sms
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid authentication token
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+    Forbidden:
+      description: Authenticated user lacks admin role
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+    NotFound:
+      description: Invite not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+    BadRequest:
+      description: Invalid request payload
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              errors:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    field:
+                      type: string
+                    message:
+                      type: string
