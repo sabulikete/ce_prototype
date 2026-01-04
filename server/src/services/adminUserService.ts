@@ -5,7 +5,8 @@ import {
 	InviteConflictFlag,
 	UserInviteRow,
 } from '../types/adminUsers';
-import { detectInviteConflicts, INVITE_MAX_REMINDERS } from './inviteService';
+import { detectInviteConflicts, checkResendEligibility } from './inviteService';
+import { inviteConfig } from '../config/invites';
 
 const prisma = new PrismaClient();
 const DEFAULT_PAGE_SIZE = 25;
@@ -47,13 +48,15 @@ const buildSearchFilter = (search: string) => {
 const inviteViewStatuses: InviteStatus[] = [InviteStatus.PENDING, InviteStatus.EXPIRED, InviteStatus.REVOKED];
 
 const buildInvitePermissions = (invite: Prisma.InviteGetPayload<{ include: { creator: true } }>) => {
-	const reminderCount = invite.reminder_count ?? 0;
+	const eligibility = checkResendEligibility(invite);
 	const isAccepted = invite.status === InviteStatus.ACCEPTED;
 	const isRevoked = invite.status === InviteStatus.REVOKED;
 	return {
-		canResend: !isAccepted && !isRevoked && reminderCount < INVITE_MAX_REMINDERS,
+		canResend: eligibility.eligible,
 		canRevoke: !isAccepted && !isRevoked,
-		maxReminders: INVITE_MAX_REMINDERS,
+		maxReminders: inviteConfig.reminderCap,
+		resendEligible: eligibility.eligible,
+		eligibilityReason: eligibility.reason,
 	};
 };
 
@@ -64,7 +67,7 @@ const mapInviteRow = (
 	id: invite.id,
 	source: 'INVITE',
 	email: invite.email,
-	fullName: null,
+	fullName: invite.name,
 	role: invite.role,
 	status: invite.status,
 	joinedAt: null,
@@ -87,6 +90,7 @@ const mapInviteRow = (
 const userRowSelect = Prisma.validator<Prisma.UserSelect>()({
 	id: true,
 	email: true,
+	name: true,
 	unit_id: true,
 	role: true,
 	status: true,
@@ -98,7 +102,7 @@ const mapUserRow = (user: UserRow): UserInviteRow => ({
 	id: user.id,
 	source: 'USER',
 	email: user.email,
-	fullName: null,
+	fullName: user.name,
 	role: user.role,
 	status: user.status,
 	joinedAt: null,

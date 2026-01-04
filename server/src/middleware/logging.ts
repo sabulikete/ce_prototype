@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import { redactSensitiveFields } from '../utils/auditLogger';
 
 interface LogEntry {
   event: string;
@@ -6,12 +7,14 @@ interface LogEntry {
   [key: string]: unknown;
 }
 
-const output = (entry: LogEntry) => {
+const output = (entry: LogEntry, redact = false) => {
   const payload = {
     timestamp: new Date().toISOString(),
     ...entry,
   };
-  console.log(JSON.stringify(payload));
+  // Apply redaction if requested
+  const finalPayload = redact ? redactSensitiveFields(payload) : payload;
+  console.log(JSON.stringify(finalPayload));
 };
 
 export const requestLogger = (req: Request, res: Response, next: NextFunction) => {
@@ -30,9 +33,9 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
 };
 
 export const logAuditEvent = (event: string, fields: Record<string, unknown> = {}) => {
-  output({ event, scope: 'audit', ...fields });
+  output({ event, scope: 'audit', ...fields }, true); // Always redact audit events
 };
 
 export const emitMetric = (metric: string, value = 1, fields: Record<string, unknown> = {}) => {
-  output({ event: 'metric', metric, value, ...fields });
+  output({ event: 'metric', metric, value, ...fields }, true); // Always redact metrics
 };

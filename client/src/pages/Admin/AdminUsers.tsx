@@ -19,12 +19,13 @@ import {
   createInvite,
   updateUser,
   deleteUser,
-  resendInvite,
   revokeInvite,
   getErrorMessage,
 } from '../../services/api';
 import AdminUserStatusTabs from '../../components/UI/Tabs/AdminUserStatusTabs';
+import InviteResendModal from '../../components/Admin/InviteResendModal';
 import { useAdminUserFilters, AdminUserTabKey } from './UserManagement/state';
+import { useInviteResend } from '../../hooks/useInviteResend';
 import { useToast } from '../../context/ToastContext';
 import './AdminUsers.css';
 
@@ -36,6 +37,8 @@ interface InviteActionPermissions {
   canResend: boolean;
   canRevoke: boolean;
   maxReminders: number;
+  resendEligible?: boolean;
+  eligibilityReason?: string | null;
 }
 
 interface InvitationMetadata {
@@ -83,11 +86,18 @@ const formatDate = (value?: string | null) => {
   }
 };
 
+type InviteStatusFilter = 'all' | 'pending' | 'expired';
+
 const AdminUsers: React.FC = () => {
   const { showToast } = useToast();
   const { view, setView, search, page, updateSearch, updatePage, clearViewFilters, resetToDefaultActive } =
     useAdminUserFilters();
+  const { selectedInviteId, isModalOpen, openModal, closeModal, refreshKey } = useInviteResend({
+    autoRefresh: true,
+    refreshInterval: 30000, // Refresh every 30 seconds when modal is open (FR-008)
+  });
   const [debouncedSearch, setDebouncedSearch] = useState(search.trim());
+  const [inviteStatusFilter, setInviteStatusFilter] = useState<InviteStatusFilter>('pending');
   const [rows, setRows] = useState<UserInviteRow[]>([]);
   const [pagination, setPagination] = useState<PaginationMeta>({ page: 1, pageSize: DEFAULT_PAGE_SIZE, total: 0 });
   const [isLoading, setIsLoading] = useState(true);
@@ -97,7 +107,6 @@ const AdminUsers: React.FC = () => {
   const [sending, setSending] = useState(false);
   const [generatedLink, setGeneratedLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const [resendingId, setResendingId] = useState<number | null>(null);
   const [revokingId, setRevokingId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -116,7 +125,20 @@ const AdminUsers: React.FC = () => {
         page,
         search: debouncedSearch || undefined,
       });
-      setRows(response.data);
+      // Apply client-side invite status filter when on the invited tab
+      let filteredData = response.data;
+      if (view === 'invited' && inviteStatusFilter !== 'all') {
+        filteredData = response.data.filter((row: UserInviteRow) => {
+          if (inviteStatusFilter === 'pending') {
+            return row.status === 'PENDING';
+          }
+          if (inviteStatusFilter === 'expired') {
+            return row.status === 'EXPIRED';
+          }
+          return true;
+        });
+      }
+      setRows(filteredData);
       setPagination(response.pagination);
     } catch (err) {
       console.error('Failed to load admin users', err);
@@ -124,7 +146,7 @@ const AdminUsers: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [view, page, debouncedSearch]);
+  }, [view, page, debouncedSearch, inviteStatusFilter]);
 
   useEffect(() => {
     loadAdminUsers();
@@ -198,19 +220,36 @@ const AdminUsers: React.FC = () => {
     }
   };
 
-  const handleResendInvite = async (row: UserInviteRow) => {
-    if (row.source !== 'INVITE' || !row.invitation?.permissions?.canResend) return;
-    setResendingId(row.id);
-    try {
-      await resendInvite(row.id);
-      showToast('Invitation resent', 'success');
-      await loadAdminUsers();
-    } catch (error) {
-      console.error('Failed to resend invite', error);
-      showToast(getErrorMessage(error, 'Failed to resend invite'), 'error');
-    } finally {
-      setResendingId(null);
-    }
+  const handleResendInvite = (row: UserInviteRow) => {
+    if (row.source !== 'INVITE') return;
+    openModal(row.id);
+  };
+
+  const handleResendModalSuccess = (data: { reminderCount: number; resendEligible: boolean }) => {
+    // Update the local row state with new reminder data from server
+    setRows((prev) =>
+      prev.map((r) =>
+        r.source === 'INVITE' && r.id === selectedInviteId && r.invitation
+          ? {
+              ...r,
+              invitation: {
+                ...r.invitation,
+                reminderCount: data.reminderCount,
+                permissions: r.invitation.permissions
+                  ? {
+                      ...r.invitation.permissions,
+                      canResend: data.resendEligible,
+                      resendEligible: data.resendEligible,
+                      eligibilityReason: data.resendEligible
+                        ? null
+                        : `Reminder cap of ${r.invitation.permissions.maxReminders} reached`,
+                    }
+                  : r.invitation.permissions,
+              },
+            }
+          : r
+      )
+    );
   };
 
   const handleRevokeInvite = async (row: UserInviteRow) => {
@@ -375,6 +414,19 @@ const AdminUsers: React.FC = () => {
       <div className="table-toolbar">
         <AdminUserStatusTabs value={view} onChange={handleTabChange} />
         <div className="toolbar-inputs">
+          {view === 'invited' && (
+            <div className="invite-status-filter">
+              <select
+                value={inviteStatusFilter}
+                onChange={(e) => setInviteStatusFilter(e.target.value as InviteStatusFilter)}
+                className="status-filter-select"
+              >
+                <option value="pending">Pending Only</option>
+                <option value="expired">Expired Only</option>
+                <option value="all">All Invites</option>
+              </select>
+            </div>
+          )}
           <div className="search-input">
             <Search size={16} />
             <input
@@ -422,7 +474,7 @@ const AdminUsers: React.FC = () => {
                   <td colSpan={6}>
                     <div className="empty-state">
                       {view === 'invited'
-                        ? 'No pending invites found. Generate one to see it here.'
+                        ? 'No pending invites found. Generate one to see it here. The Resend button appears for invites that have not reached their reminder cap or been activated/revoked.'
                         : 'No users match this filter yet.'}
                     </div>
                   </td>
@@ -472,10 +524,8 @@ const AdminUsers: React.FC = () => {
                           <button
                             className="invite-action-btn"
                             onClick={() => handleResendInvite(row)}
-                            disabled={
-                              !row.invitation?.permissions?.canResend || resendingId === row.id || isLoading
-                            }
-                            title={row.invitation?.permissions?.canResend ? 'Resend invite' : 'Resend unavailable'}
+                            disabled={isLoading}
+                            title="View invite details and resend"
                           >
                             <Send size={14} />
                             <span>Resend</span>
@@ -583,6 +633,15 @@ const AdminUsers: React.FC = () => {
             )}
           </div>
         </div>
+      )}
+
+      {isModalOpen && selectedInviteId !== null && (
+        <InviteResendModal
+          inviteId={selectedInviteId}
+          onClose={closeModal}
+          onResendSuccess={handleResendModalSuccess}
+          refreshKey={refreshKey}
+        />
       )}
     </div>
   );

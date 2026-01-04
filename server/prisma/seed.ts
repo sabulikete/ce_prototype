@@ -15,6 +15,8 @@ type InviteSeed = {
   status: InviteStatus;
   reminderCount?: number;
   lastSentOffsetDays?: number;
+  /** If true, last_sent_by will be set to the admin user (simulating a resend). */
+  hasBeenResent?: boolean;
 };
 
 const inviteSeeds: InviteSeed[] = [
@@ -26,6 +28,17 @@ const inviteSeeds: InviteSeed[] = [
     status: InviteStatus.PENDING,
     reminderCount: 1,
     lastSentOffsetDays: -3,
+    hasBeenResent: true,
+  },
+  {
+    email: 'pending.maxed@example.com',
+    label: 'Pending invite at reminder cap',
+    role: Role.MEMBER,
+    expiresOffsetDays: inviteTtlDays,
+    status: InviteStatus.PENDING,
+    reminderCount: 3, // matches default INVITE_REMINDER_CAP
+    lastSentOffsetDays: -1,
+    hasBeenResent: true,
   },
   {
     email: 'expired.invite@example.com',
@@ -41,6 +54,14 @@ const inviteSeeds: InviteSeed[] = [
     expiresOffsetDays: Math.max(1, Math.floor(inviteTtlDays / 2)),
     status: InviteStatus.ACCEPTED,
     usedAt: new Date(),
+  },
+  {
+    email: 'revoked.invite@example.com',
+    label: 'Revoked invite',
+    role: Role.MEMBER,
+    expiresOffsetDays: inviteTtlDays,
+    status: InviteStatus.REVOKED,
+    reminderCount: 0,
   },
 ];
 
@@ -80,7 +101,7 @@ async function main() {
     const lastSentAt = seed.lastSentOffsetDays ? daysFromNow(seed.lastSentOffsetDays) : now;
     const pendingKey = seed.status === InviteStatus.PENDING ? seed.email.toLowerCase() : null;
 
-    await prisma.invite.create({
+    const invite = await prisma.invite.create({
       data: {
         email: seed.email.toLowerCase(),
         role: seed.role,
@@ -91,9 +112,22 @@ async function main() {
         status: seed.status,
         reminder_count: seed.reminderCount ?? 0,
         last_sent_at: lastSentAt,
+        last_sent_by: seed.hasBeenResent ? adminUser.id : null,
         pending_email_key: pendingKey,
       },
     });
+
+    // Create InviteReminder history rows for resent invites
+    if (seed.hasBeenResent && (seed.reminderCount ?? 0) > 0) {
+      const reminderData = Array.from({ length: seed.reminderCount ?? 0 }, (_, i) => ({
+        invite_id: invite.id,
+        sent_by: adminUser.id,
+        sent_at: daysFromNow((seed.lastSentOffsetDays ?? 0) - (seed.reminderCount! - 1 - i)),
+        channels: JSON.stringify(['email']),
+        success: true,
+      }));
+      await prisma.inviteReminder.createMany({ data: reminderData });
+    }
 
     seededInvites.push({ label: seed.label, email: seed.email, token });
   }
