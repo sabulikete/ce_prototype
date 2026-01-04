@@ -1,6 +1,5 @@
-import { PrismaClient, Content, Event, ContentType, ContentStatus, Visibility, Prisma } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { Content, Event, ContentType, ContentStatus, Visibility, Prisma } from '@prisma/client';
+import { prisma } from '../config/prisma';
 
 interface CreateContentInput {
   type: ContentType;

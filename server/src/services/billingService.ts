@@ -1,9 +1,8 @@
-import { PrismaClient, BillingStatement } from '@prisma/client';
+import { BillingStatement } from '@prisma/client';
 import AdmZip from 'adm-zip';
 import path from 'path';
 import fs from 'fs';
-
-const prisma = new PrismaClient();
+import { prisma } from '../config/prisma';
 
 // Directory to store billing files
 const BILLING_DIR = process.env.BILLING_DIR || path.join(__dirname, '../../uploads/billing');

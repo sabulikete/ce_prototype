@@ -1,8 +1,7 @@
-import { PrismaClient, TicketStatus, UserStatus, Prisma } from '@prisma/client';
+import { TicketStatus, UserStatus, Prisma } from '@prisma/client';
 import crypto from 'crypto';
 import { MAX_TICKETS_PER_USER_PER_EVENT, DEFAULT_EVENT_CAPACITY } from '../config/constants';
-
-const prisma = new PrismaClient();
+import { prisma } from '../config/prisma';
 
 // Secret for signing QR codes
 const QR_SECRET = process.env.QR_SECRET || 'default-qr-secret';

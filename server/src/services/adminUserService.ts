@@ -1,4 +1,4 @@
-import { InviteStatus, Prisma, PrismaClient, UserStatus } from '@prisma/client';
+import { InviteStatus, Prisma, UserStatus } from '@prisma/client';
 import {
 	AdminUserListResponse,
 	AdminUserViewFilter,
@@ -7,8 +7,8 @@ import {
 } from '../types/adminUsers';
 import { detectInviteConflicts, checkResendEligibility } from './inviteService';
 import { inviteConfig } from '../config/invites';
+import { prisma } from '../config/prisma';
 
-const prisma = new PrismaClient();
 const DEFAULT_PAGE_SIZE = 25;
 const MAX_PAGE_SIZE = 100;
 

@@ -1,7 +1,6 @@
-import { PrismaClient, Ticket } from '@prisma/client';
+import { Ticket } from '@prisma/client';
 import crypto from 'crypto';
-
-const prisma = new PrismaClient();
+import { prisma } from '../config/prisma';
 
 // Secret for signing QR codes. Should be in env.
 const QR_SECRET = process.env.QR_SECRET || 'default-qr-secret';

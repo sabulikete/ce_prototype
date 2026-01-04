@@ -1,4 +1,4 @@
-import { Invite, InviteStatus, PrismaClient, Role, UserStatus } from '@prisma/client';
+import { Invite, InviteStatus, Role, UserStatus } from '@prisma/client';
 import { InviteConflictFlag } from '../types/adminUsers';
 import { emitMetric, logAuditEvent } from '../middleware/logging';
 import {
@@ -10,8 +10,7 @@ import {
 import { inviteConfig, resolveResendChannels, isReminderCapReached } from '../config/invites';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
-
-const prisma = new PrismaClient();
+import { prisma } from '../config/prisma';
 export const INVITE_TTL_DAYS = Number(process.env.INVITE_TTL_DAYS ?? 14);
 /**
  * @deprecated Use inviteConfig.reminderCap from config/invites.ts instead.
