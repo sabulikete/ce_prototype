@@ -136,10 +136,11 @@ async function main() {
 
     // Create InviteReminder history rows for resent invites
     if (seed.hasBeenResent && (seed.reminderCount ?? 0) > 0) {
-      const reminderData = Array.from({ length: seed.reminderCount ?? 0 }, (_, i) => ({
+      const reminderCount = seed.reminderCount ?? 0;
+      const reminderData = Array.from({ length: reminderCount }, (_, i) => ({
         invite_id: invite.id,
         sent_by: adminUser.id,
-        sent_at: calculateReminderSentDate(seed.lastSentOffsetDays ?? 0, i, seed.reminderCount!),
+        sent_at: calculateReminderSentDate(seed.lastSentOffsetDays ?? 0, i, reminderCount),
         channels: JSON.stringify(['email']),
         success: true,
       }));

@@ -521,6 +521,9 @@ const AdminUsers: React.FC = () => {
                         </>
                       ) : (
                         <div className="invite-actions">
+                          {/* Resend button is always enabled - modal handles eligibility display.
+                              This allows users to view invite details even for ineligible invites,
+                              with the modal explaining why resend is blocked (FR-003). */}
                           <button
                             className="invite-action-btn"
                             onClick={() => handleResendInvite(row)}

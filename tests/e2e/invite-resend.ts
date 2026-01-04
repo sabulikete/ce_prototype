@@ -5,11 +5,13 @@
  * - Opening the resend modal for a pending invite
  * - Copying the invite link to clipboard
  * - Triggering a resend and verifying the toast appears
- * - Timing assertion for the 3-second SLA (SC-002)
+ * - Timing assertion for the 3-second SLA (SC-002: Resend confirmation within 3 seconds)
+ *
+ * Reference: specs/001-invite-resend-modal/spec.md
  */
 
 const API_URL = 'http://localhost:3000/api';
-const SLA_MS = 3000; // 3-second SLA for resend confirmation
+const SLA_MS = 3000; // 3-second SLA for resend confirmation (SC-002)
 
 interface InviteResendContext {
   inviteId: number;

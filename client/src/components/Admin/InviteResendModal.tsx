@@ -80,7 +80,8 @@ const InviteResendModal: React.FC<InviteResendModalProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [inviteId, refreshKey, showToast]); // Include refreshKey to trigger refetch
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- showToast is stable from ToastContext, only used for side effects
+  }, [inviteId, refreshKey]);
 
   const handleResend = async () => {
     if (!context?.resendEligible) return;
