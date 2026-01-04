@@ -26,6 +26,14 @@ interface UserResponse {
 
 const MAX_TICKETS_PER_USER = 50;
 
+/**
+ * Validates and clamps quantity to valid range [1, MAX_TICKETS_PER_USER]
+ */
+const validateQuantity = (value: string): number => {
+  const parsed = parseInt(value) || 1;
+  return Math.min(MAX_TICKETS_PER_USER, Math.max(1, parsed));
+};
+
 const IssueTicketsModal: React.FC<IssueTicketsModalProps> = ({ isOpen, onClose, eventId }) => {
   const { showToast } = useToast();
   const [users, setUsers] = useState<UserOption[]>([]);
@@ -174,7 +182,7 @@ const IssueTicketsModal: React.FC<IssueTicketsModalProps> = ({ isOpen, onClose, 
                     min={1}
                     max={MAX_TICKETS_PER_USER}
                     value={quantity}
-                    onChange={(e) => setQuantity(Math.min(MAX_TICKETS_PER_USER, Math.max(1, parseInt(e.target.value) || 1)))}
+                    onChange={(e) => setQuantity(validateQuantity(e.target.value))}
                     disabled={submitting}
                     style={{
                       width: '80px',

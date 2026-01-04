@@ -49,4 +49,4 @@ await prisma.$transaction(async (tx) => {
 
 **Problem**: How to enforce the 1000 global limit?
 
-**Decision**: **Add `capacity` field to Event model***Refinement**: We will adent` model currently lacks a capacity field. We will add `capacity Int @default(1000)` to the Prisma schema.
+**Decision**: **Add `capacity` field to `Event` model**. **Refinement**: The `Event` model currently lacks a `capacity` field. We will add `capacity Int @default(1000)` to the Prisma schema.

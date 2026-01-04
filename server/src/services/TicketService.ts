@@ -27,7 +27,7 @@ export interface TicketWithToken {
   code: string;
   status: TicketStatus;
   createdAt: Date;
-  token: string;
+  token: string | null;
 }
 
 /**
@@ -231,7 +231,7 @@ export const getTicketsForUser = async (
 
   return tickets.map((ticket) => {
     // For INVITED users, mask the QR token
-    const token = isInvited ? '' : generateQRToken(ticket.id, ticket.event_id);
+    const token = isInvited ? null : generateQRToken(ticket.id, ticket.event_id);
     
     return {
       id: ticket.id,

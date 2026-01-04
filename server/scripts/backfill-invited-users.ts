@@ -19,7 +19,7 @@ async function backfillInvitedUsers() {
     });
     
     if (!existingUser) {
-      const placeholderHash = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10);
+      const placeholderHash = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 12);
       await prisma.user.create({
         data: {
           email: normalizedEmail,

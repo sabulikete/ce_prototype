@@ -104,7 +104,7 @@ export const createInvite = async (
   const existingUser = await findUserByEmail(cleanEmail);
   if (!existingUser) {
     // Create user with INVITED status and placeholder password
-    const placeholderPasswordHash = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10);
+    const placeholderPasswordHash = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 12);
     await prisma.user.create({
       data: {
         email: cleanEmail,
