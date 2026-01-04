@@ -257,7 +257,7 @@ const AdminUsers: React.FC = () => {
     loadAdminUsers();
   };
 
-  const hasActiveFilters = view !== 'active' || search.trim().length > 0 || page !== 1;
+  const hasActiveFilters = view !== 'invited' || search.trim().length > 0 || page !== 1;
   const totalPages = Math.max(1, Math.ceil(pagination.total / pagination.pageSize));
 
   const renderConflictFlags = (flags?: InviteConflictFlag[]) => {

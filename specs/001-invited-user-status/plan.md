@@ -1,6 +1,3 @@
-src/
-tests/
-ios/ or android/
 # Implementation Plan: Invited Users Status Visibility
 
 **Branch**: `[001-invited-user-status]` | **Date**: January 4, 2026 | **Spec**: [specs/001-invited-user-status/spec.md](specs/001-invited-user-status/spec.md)

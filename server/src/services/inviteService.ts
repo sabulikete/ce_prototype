@@ -40,7 +40,7 @@ export const createUser = async (email: string, password: string, role: Role, un
 };
 
 export const findUserByEmail = async (email: string) => {
-  const cleanEmail = email.trim();
+  const cleanEmail = normalizeEmail(email);
   return prisma.user.findUnique({
     where: { email: cleanEmail },
   });
